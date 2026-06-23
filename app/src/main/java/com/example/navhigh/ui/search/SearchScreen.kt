@@ -38,7 +38,7 @@ fun SearchScreen(onNavigate: (String) -> Unit = {}) {
                 CategoryTabs()
             }
             item {
-                CreatorSection()
+//                CreatorSection()
             }
             item {
                 AudioSection()
