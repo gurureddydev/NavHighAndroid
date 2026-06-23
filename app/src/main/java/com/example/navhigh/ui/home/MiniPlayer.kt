@@ -15,6 +15,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.navhigh.R
 import com.example.navhigh.ui.theme.SecondaryText
+import android.content.res.Configuration
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun MiniPlayer(
@@ -80,6 +83,48 @@ fun MiniPlayer(
             IconButton(onClick = { }) {
                 Text("🎶", color = Color.White)
             }
+        }
+    }
+}
+
+
+@Preview(
+    name = "Mini Player Light",
+    showBackground = true,
+    backgroundColor = 0xFFFFFFFF,
+    widthDp = 390,
+    heightDp = 844
+)
+@Composable
+fun MiniPlayerPreview() {
+    MaterialTheme {
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            MiniPlayer(
+                modifier = Modifier.align(Alignment.BottomCenter)
+            )
+        }
+    }
+}
+
+@Preview(
+    name = "Mini Player Dark",
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showBackground = true,
+    backgroundColor = 0xFF000000,
+    widthDp = 390,
+    heightDp = 844
+)
+@Composable
+fun MiniPlayerDarkPreview() {
+    MaterialTheme {
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            MiniPlayer(
+                modifier = Modifier.align(Alignment.BottomCenter)
+            )
         }
     }
 }

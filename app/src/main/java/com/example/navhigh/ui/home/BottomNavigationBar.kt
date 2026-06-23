@@ -1,110 +1,239 @@
 package com.example.navhigh.ui.home
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.navhigh.ui.theme.PrimaryBlue
 
 @Composable
-fun BottomNavigationBar() {
+fun MainScreen() {
+    var currentRoute by remember { mutableStateOf("Home") }
+
+    Scaffold(
+        containerColor = Color(0xFF020817),
+        bottomBar = {
+            BottomNavigationBar(
+                currentRoute = currentRoute,
+                onRouteSelected = { newRoute: String ->
+                    if (newRoute != "Create") {
+                        currentRoute = newRoute
+                    }
+                }
+            )
+        }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+        ) {
+            when (currentRoute) {
+                "Home" -> {
+                    HomeFeedScreen()
+                }
+                "Search" -> {
+                    PlaceholderScreen(title = "Discover Screen")
+                }
+                "Notifications" -> {
+                    PlaceholderScreen(title = "Notifications Screen")
+                }
+                "Profile" -> {
+                    PlaceholderScreen(title = "Profile Screen")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun PlaceholderScreen(title: String) {
     Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(text = title, color = Color.White, fontSize = 20.sp)
+    }
+}
+
+@Composable
+fun BottomNavigationBar(
+    currentRoute: String,
+    onRouteSelected: (String) -> Unit = {}
+) {
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .height(90.dp)
-            .background(Color(0xFF01071A))
+            .background(Color(0xFF040A18))
+            .windowInsetsPadding(WindowInsets.navigationBars)
     ) {
-        Row(
+        HorizontalDivider(
+            thickness = 1.dp,
+            color = Color(0xFF102040)
+        )
+
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .height(76.dp),
+            contentAlignment = Alignment.Center
         ) {
-            NavItem(Icons.Default.Home, "Home", true)
-            NavItem(Icons.Default.Search, "Discover", false)
-            
-            // Central Add Button
-            Box(
+            Row(
                 modifier = Modifier
-                    .size(56.dp)
-                    .clip(CircleShape)
-                    .background(
-                        Brush.linearGradient(
-                            colors = listOf(PrimaryBlue, Color(0xFF8B5CF6))
-                        )
-                    ),
-                contentAlignment = Alignment.Center
+                    .fillMaxSize()
+                    .padding(horizontal = 5.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add",
-                    tint = Color.White,
-                    modifier = Modifier.size(32.dp)
+                NavItem(
+                    modifier = Modifier.weight(1f),
+                    label = "Home",
+                    selected = currentRoute == "Home",
+                    iconOutlined = Icons.Outlined.Home,
+                    iconFilled = Icons.Filled.Home,
+                    onClick = { onRouteSelected("Home") }
+                )
+
+                NavItem(
+                    modifier = Modifier.weight(1f),
+                    label = "Discover",
+                    selected = currentRoute == "Search",
+                    iconOutlined = Icons.Outlined.Explore,
+                    iconFilled = Icons.Filled.Explore,
+                    onClick = { onRouteSelected("Search") }
+                )
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) { onRouteSelected("Create") }
+                ) {
+                    Image(
+                        painter = painterResource(id = com.example.navhigh.R.drawable.plus),
+                        contentDescription = "Create",
+                        modifier = Modifier.size(30.dp)
+                    )
+                }
+
+                NavItem(
+                    modifier = Modifier.weight(1f),
+                    label = "Notifications",
+                    selected = currentRoute == "Notifications",
+                    iconOutlined = Icons.Outlined.Notifications,
+                    iconFilled = Icons.Filled.Notifications,
+                    badgeCount = 3,
+                    onClick = { onRouteSelected("Notifications") }
+                )
+
+                NavItem(
+                    modifier = Modifier.weight(1f),
+                    label = "Profile",
+                    selected = currentRoute == "Profile",
+                    iconOutlined = Icons.Outlined.Person,
+                    iconFilled = Icons.Filled.Person,
+                    onClick = { onRouteSelected("Profile") }
                 )
             }
-
-            NavItem(Icons.Default.Notifications, "Notifications", false, badgeCount = 3)
-            NavItem(Icons.Default.Person, "Profile", false)
         }
     }
 }
 
 @Composable
 fun NavItem(
-    icon: ImageVector,
+    modifier: Modifier = Modifier, // Fixed: Moved modifier parameter to the front
     label: String,
     selected: Boolean,
-    badgeCount: Int = 0
+    iconOutlined: ImageVector,
+    iconFilled: ImageVector,
+    badgeCount: Int = 0,
+    onClick: () -> Unit = {}
 ) {
+    val animatedContentColor by animateColorAsState(
+        targetValue = if (selected) Color.White else Color(0xFF8A95B5),
+        animationSpec = tween(durationMillis = 250),
+        label = "TabColorAnimation"
+    )
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
+        modifier = modifier
+            .fillMaxHeight()
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) { onClick() }
     ) {
-        if (badgeCount > 0) {
-            BadgedBox(
-                badge = {
-                    Badge(containerColor = PrimaryBlue) {
-                        Text(badgeCount.toString(), color = Color.White, fontSize = 10.sp)
+        BadgedBox(
+            badge = {
+                if (badgeCount > 0) {
+                    Badge(
+                        containerColor = Color(0xFF1D9FFF),
+                        contentColor = Color.White,
+                        modifier = Modifier.offset(x = 2.dp, y = (-2).dp)
+                    ) {
+                        Text(
+                            text = badgeCount.toString(),
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
-            ) {
+            }
+        ) {
+            Crossfade(
+                targetState = selected,
+                animationSpec = tween(durationMillis = 150),
+                label = "IconCrossfade"
+            ) { isSelected ->
                 Icon(
-                    imageVector = icon,
+                    imageVector = if (isSelected) iconFilled else iconOutlined,
                     contentDescription = label,
-                    tint = if (selected) PrimaryBlue else Color.Gray,
-                    modifier = Modifier.size(24.dp)
+                    tint = animatedContentColor,
+                    modifier = Modifier.size(20.dp)
                 )
             }
-        } else {
-            Icon(
-                imageVector = icon,
-                contentDescription = label,
-                tint = if (selected) PrimaryBlue else Color.Gray,
-                modifier = Modifier.size(24.dp)
+        }
+
+        if (label.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = label,
+                color = animatedContentColor,
+                fontSize = 10.sp,
+                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+                maxLines = 1
             )
         }
-        
-        Text(
-            text = label,
-            color = if (selected) PrimaryBlue else Color.Gray,
-            fontSize = 10.sp,
-            modifier = Modifier.padding(top = 4.dp)
-        )
+    }
+}
+
+@Preview(showBackground = true, device = "spec:width=390dp,height=844dp,dpi=440")
+@Composable
+fun MainScreenPreview() {
+    MaterialTheme {
+        MainScreen()
     }
 }
