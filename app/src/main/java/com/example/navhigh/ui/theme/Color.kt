@@ -34,3 +34,11 @@ val BottomNavBorder = Color(0xFF102040)
 
 val CreateButtonStart = Color(0xFF0EA5FF)
 val CreateButtonEnd = Color(0xFF2D7DFF)
+
+// Create Screen Colors
+val DarkBackground = Color(0xFF0B1017)
+val BoxBackground = Color(0xFF0F172A)
+val IconBlue = Color(0xFF3B82F6)
+val BoxStrokeColor = Color(0xFF1E293B)
+val LabelColor = Color(0xFFFFFFFF)
+val SubtextColor = Color(0xFF9CA3AF)
