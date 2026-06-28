@@ -1,62 +1,35 @@
 package com.example.navhigh.ui.search
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import com.example.navhigh.ui.theme.AppDimensions
-import com.example.navhigh.ui.theme.AppTypography
-import com.example.navhigh.ui.theme.BorderChip
-import com.example.navhigh.ui.theme.CardBlue
-import com.example.navhigh.ui.theme.PrimaryBlue
-import com.example.navhigh.ui.theme.SecondaryText
-
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.tooling.preview.Preview
-
-
-@Preview(
-    name = "Recent Searches",
-    showBackground = true,
-    backgroundColor = 0xFF121212,
-    widthDp = 390,
-    heightDp = 180
-)
-@Composable
-fun RecentSearchesPreview() {
-    MaterialTheme {
-        Column(
-            modifier = Modifier
-                .background(Color(0xFF121212))
-                .padding(horizontal = 20.dp, vertical = 24.dp)
-        ) {
-            RecentSearches()
-        }
-    }
-}
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.navhigh.ui.theme.*
 
 @Composable
-fun RecentSearches() {
+fun RecentSearches(
+    items: List<String>,
+    onClearAll: () -> Unit,
+    onRemoveItem: (String) -> Unit
+) {
+    // If the list is empty, the entire component returns early and remains invisible
+    if (items.isEmpty()) return
+
     Column {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -65,52 +38,95 @@ fun RecentSearches() {
         ) {
             Text(
                 text = "Recent Searches",
-                fontSize = AppTypography.TitleSmall,
+                fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Color.White
             )
             Text(
                 text = "Clear All",
-                fontSize = AppTypography.BodyMedium,
-                color = PrimaryBlue
+                fontSize = 14.sp,
+                color = PrimaryBlue,
+                modifier = Modifier.clickable { onClearAll() }
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            val items = listOf("Lofi Beats", "Motivation", "#podcast", "Arjun Beats")
             items(items) { item ->
-                RecentSearchChip(text = item)
+                RecentSearchChip(
+                    text = item,
+                    onRemove = { onRemoveItem(item) }
+                )
             }
         }
     }
 }
 
 @Composable
-fun RecentSearchChip(text: String) {
+fun RecentSearchChip(
+    text: String,
+    onRemove: () -> Unit
+) {
     Row(
         modifier = Modifier
-            .clip(RoundedCornerShape(AppDimensions.RadiusMax))
+            .clip(RoundedCornerShape(12.dp))
             .background(CardBlue)
-            .border(1.dp, BorderChip, RoundedCornerShape(AppDimensions.RadiusMax))
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+            .padding(horizontal = 8.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
+        Icon(
+            imageVector = Icons.Default.History,
+            contentDescription = null,
+            tint = SecondaryText,
+            modifier = Modifier.size(16.dp)
+        )
+
+        Spacer(modifier = Modifier.width(8.dp))
+
         Text(
             text = text,
-            fontSize = AppTypography.BodySmall,
+            fontSize = 10.sp,
             fontWeight = FontWeight.Medium,
             color = Color.White
         )
+
+        Spacer(modifier = Modifier.width(5.dp))
+
         Icon(
             imageVector = Icons.Default.Close,
             contentDescription = "Remove",
             tint = SecondaryText,
-            modifier = Modifier.size(14.dp)
+            modifier = Modifier
+                .size(16.dp)
+                .clickable { onRemove() }
         )
+    }
+}
+
+@Preview(
+    name = "Recent Searches",
+    showBackground = true,
+    backgroundColor = 0xFF121212,
+    widthDp = 390
+)
+@Composable
+fun RecentSearchesPreview() {
+    val sampleItems = remember { mutableStateListOf("Lofi Beats", "Motivation", "#podcast", "Arjun Beats") }
+
+    NavHighTheme {
+        Column(
+            modifier = Modifier
+                .background(Color(0xFF121212))
+                .padding(20.dp)
+        ) {
+            RecentSearches(
+                items = sampleItems,
+                onClearAll = { sampleItems.clear() },
+                onRemoveItem = { item -> sampleItems.remove(item) }
+            )
+        }
     }
 }

@@ -1,4 +1,4 @@
-package com.example.navhigh.ui.home
+package com.example.navhigh.navigation
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
@@ -22,6 +22,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.navhigh.R
+import com.example.navhigh.ui.create.CreateScreen
+import com.example.navhigh.ui.home.HomeFeedScreen
 
 @Composable
 fun MainScreen() {
@@ -32,10 +35,8 @@ fun MainScreen() {
         bottomBar = {
             BottomNavigationBar(
                 currentRoute = currentRoute,
-                onRouteSelected = { newRoute: String ->
-                    if (newRoute != "Create") {
-                        currentRoute = newRoute
-                    }
+                onRouteSelected = { newRoute ->
+                    currentRoute = newRoute
                 }
             )
         }
@@ -51,6 +52,16 @@ fun MainScreen() {
                 }
                 "Search" -> {
                     PlaceholderScreen(title = "Discover Screen")
+                }
+                "Create" -> {
+                    CreateScreen(
+                        onCloseClick = {
+                            currentRoute = "Home"
+                        },
+                        onDraftsClick = {
+                            // handle drafts click if needed
+                        }
+                    )
                 }
                 "Notifications" -> {
                     PlaceholderScreen(title = "Notifications Screen")
@@ -131,7 +142,7 @@ fun BottomNavigationBar(
                         ) { onRouteSelected("Create") }
                 ) {
                     Image(
-                        painter = painterResource(id = com.example.navhigh.R.drawable.plus),
+                        painter = painterResource(id = R.drawable.plus),
                         contentDescription = "Create",
                         modifier = Modifier.size(30.dp)
                     )

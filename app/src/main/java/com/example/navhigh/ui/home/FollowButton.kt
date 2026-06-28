@@ -10,9 +10,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.navhigh.ui.theme.PrimaryBlue
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 
 @Composable
 fun FollowButton() {
@@ -33,4 +35,12 @@ fun FollowButton() {
             fontWeight = FontWeight.SemiBold
         )
     }
+}
+@Preview(showBackground = true)
+@Composable
+fun FollowButtonPreview() {
+    // Wrap it in your app theme if you have one
+    // YourAppTheme {
+    FollowButton()
+    // }
 }

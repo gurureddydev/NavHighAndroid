@@ -13,12 +13,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.navhigh.ui.theme.SecondaryText
+import androidx.compose.ui.tooling.preview.PreviewParameter
 
 @Composable
-fun PostActions(
+fun PostActions1(
     likes: String = "342",
     comments: String = "28",
     reposts: String = "52"
@@ -69,5 +71,24 @@ fun ActionItem(icon: ImageVector, count: String) {
             color = SecondaryText,
             fontSize = 15.sp
         )
+    }
+}
+@Composable
+fun PostActions(
+    likes: String = "342",
+    comments: String = "28",
+    reposts: String = "52"
+) {
+    // ... your existing implementation
+}
+
+// Add this below your existing composables:
+
+@Preview(showBackground = true, widthDp = 400)
+@Composable
+fun PostActionsPreview() {
+    // Wrapping in a Box to provide some padding for the preview
+    Box(modifier = Modifier.padding(16.dp)) {
+        PostActions()
     }
 }
