@@ -1,9 +1,12 @@
-
 package com.example.navhigh.ui.home
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Search
@@ -26,15 +29,20 @@ import com.example.navhigh.R
 import com.example.navhigh.ui.theme.NavHighTheme
 import com.example.navhigh.ui.theme.PrimaryBlue
 
+// ==========================================
+// TOP HEADER LAYOUT
+// ==========================================
 @Composable
-fun TopHeader() {
+fun TopHeader(
+    onSearchClick: () -> Unit = {},
+    onNotificationsClick: () -> Unit = {}
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Logo and Brand Name Layout
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start
@@ -56,7 +64,7 @@ fun TopHeader() {
             )
             Text(
                 text = "High",
-                color = PrimaryBlue, // Light Blue accent matching image_a41c1f.jpg
+                color = PrimaryBlue,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -64,8 +72,7 @@ fun TopHeader() {
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Search Action Control
-        IconButton(onClick = { }) {
+        IconButton(onClick = onSearchClick) {
             Icon(
                 imageVector = Icons.Outlined.Search,
                 contentDescription = "Search",
@@ -73,8 +80,7 @@ fun TopHeader() {
             )
         }
 
-        // Notification Badged Action Control (No offset used)
-        IconButton(onClick = { }) {
+        IconButton(onClick = onNotificationsClick) {
             BadgedBox(
                 badge = {
                     Badge(containerColor = PrimaryBlue) {
@@ -92,20 +98,14 @@ fun TopHeader() {
     }
 }
 
-// ==========================================
-// PREVIEW LAYOUT 
-// ==========================================
-@Preview(name = "Header Preview", showBackground = true, backgroundColor = 0xFF030712)
+// ... your existing TopHeader code ...
+@Preview(showBackground = true, backgroundColor = 0xFF000000) // 0xFF000000 is black
 @Composable
-fun TopHeaderPreview() {
+fun PreviewTopHeader() {
     NavHighTheme {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color(0xFF030712)) // Matches the dark slate context of your UI
-        ) {
-            TopHeader()
-        }
+        TopHeader(
+            onSearchClick = { /* Handle preview click */ },
+            onNotificationsClick = { /* Handle preview click */ }
+        )
     }
 }
-

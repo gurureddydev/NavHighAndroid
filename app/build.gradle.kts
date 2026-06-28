@@ -47,15 +47,17 @@ kotlin {
 }
 
 dependencies {
-    val camerax_version = "1.3.0"
-    implementation("androidx.camera:camera-core:${camerax_version}")
-    implementation("androidx.camera:camera-camera2:${camerax_version}")
-    implementation("androidx.camera:camera-lifecycle:${camerax_version}")
-    implementation("androidx.camera:camera-view:${camerax_version}")
+    val camerax_version = "1.4.2"
+    implementation("androidx.camera:camera-core:$camerax_version")
+    implementation("androidx.camera:camera-camera2:$camerax_version")
+    implementation("androidx.camera:camera-lifecycle:$camerax_version")
+    implementation("androidx.camera:camera-view:$camerax_version")
+    implementation("androidx.camera:camera-extensions:$camerax_version")
 // Necessary for .await()
     implementation("androidx.concurrent:concurrent-futures-ktx:1.1.0")
 // Lifecycle compose (Fixes deprecated LocalLifecycleOwner error)
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.0")
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

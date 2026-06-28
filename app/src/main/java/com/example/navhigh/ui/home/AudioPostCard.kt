@@ -38,17 +38,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.navhigh.R
+import com.example.navhigh.ui.theme.CardBgDark
+import com.example.navhigh.ui.theme.CustomBorderColor
+import com.example.navhigh.ui.theme.FollowBorderBlue
+import com.example.navhigh.ui.theme.PlayerSurfaceBg
+import com.example.navhigh.ui.theme.WaveformInactiveColor
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
 
-val CardBgDark = Color(0xFF070E17)
-val PlayerSurfaceBg = Color(0xFF0F1C2C)
-val WaveformInactiveColor = Color(0xFF4B5563)
-val CustomBorderColor = Color(0xFF1E293B)
 
-val FollowButtonBlue = Color(0xFF0056B3)
-val FollowBorderBlue = Color(0xFF00B2FE)
 
 // --- DATA STRUCTURE FOR PLAYBACK AUDIO TRACKS ---
 data class AudioTrackItem(
@@ -516,7 +515,7 @@ fun AudioPostCardIvanaPreview() {
     AudioPostCardElegant(
         profileName = "Ivana Voice",
         username = "@ivanavoice",
-        timeAgo = "1h ago",
+        timeAgo = "1hago",
         profileResId = R.drawable.ivana,
         title = "Testing out the new high-fidelity microphone setup. Sounds incredibly clean! 🎙️🎧",
         tags = "#podcast #audio #engineering #miccheck",

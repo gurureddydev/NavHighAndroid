@@ -8,6 +8,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.navhigh.ui.theme.PrimaryBlue
 
@@ -50,5 +51,23 @@ fun AudioWaveform(
                     )
             )
         }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
+@Composable
+fun PreviewAudioWaveform() {
+    Column(
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxWidth()
+    ) {
+        // Preview with 40% progress (default)
+        AudioWaveform(progress = 0.4f)
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // Preview with 80% progress
+        AudioWaveform(progress = 0.8f)
     }
 }
