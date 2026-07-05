@@ -82,7 +82,7 @@ fun CreatorItem(
 
         Column(
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(0.dp)
+            verticalArrangement = Arrangement.spacedBy((-2).dp)
         ) {
 
             Row(

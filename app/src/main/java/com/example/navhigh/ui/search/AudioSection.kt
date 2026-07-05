@@ -279,9 +279,9 @@ fun AudioRowItem(
         Spacer(modifier = Modifier.width(12.dp))
 
         Column(
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy((-2).dp)
         ) {
-
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {

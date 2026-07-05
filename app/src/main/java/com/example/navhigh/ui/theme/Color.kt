@@ -55,3 +55,27 @@ val FollowBorderBlue = Color(0xFF00B2FE)
 val SearchBarStart = Color(0xFF1E1E1E)
 val SearchBarEnd = Color(0xFF2C2C2C)
 val TextGray = Color(0xFFB0B0B0)
+val BackgroundTop = Color(0xFF020613)
+
+
+ val BackgroundMiddle = Color(0xFF07112E)
+
+ val BackgroundBottom = Color(0xFF010615)
+ val NeonBlue = Color(0xFF2B7CFF)
+val NeonBlueLight = Color(0xFF4EB8FF)
+
+ val GlowBlue = Color(0xFF2486FF)
+
+ val FogBlue = Color(0xFF143C9C)
+val TerrainBlue = Color(0xFF1B5FFF)
+
+ val DotBlue = Color(0xFF4BA8FF)
+ val WhiteBlue = Color(0xFFE9F5FF)
+
+val TrackColor = Color(0xFF1B2236)
+val ProgressStart = Color(0xFF1A73FF)
+val ProgressEnd = Color(0xFF26C6FF)
+
+val GradientStart = Color(0xFF2CD8FF)   // Light Cyan Blue
+val GradientEnd = Color(0xFF1D7CFF)     // Deep Blue
+

@@ -50,7 +50,7 @@ fun PostHeader(
 
         Column(
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(3.dp) // reduce gap
+            verticalArrangement = Arrangement.spacedBy((-2).dp)
         ) {
 
             Row(

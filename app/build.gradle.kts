@@ -47,7 +47,10 @@ kotlin {
 }
 
 dependencies {
+    implementation(libs.firebase.annotations)
     val camerax_version = "1.4.2"
+    implementation("androidx.compose.ui:ui-tooling-preview")
+
     implementation("androidx.camera:camera-core:$camerax_version")
     implementation("androidx.camera:camera-camera2:$camerax_version")
     implementation("androidx.camera:camera-lifecycle:$camerax_version")
@@ -100,4 +103,6 @@ dependencies {
     debugImplementation(
         libs.androidx.compose.ui.test.manifest
     )
+    debugImplementation("androidx.compose.ui:ui-tooling")
+
 }

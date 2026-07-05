@@ -20,6 +20,7 @@ import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,15 +54,20 @@ data class HomeFeedAudioPostData(
     val accentColor: Color,
     val playsCount: String,
     val initialLikes: Int = 1250,
-    val initialComments: Int = 84
+    val initialComments: Int = 84,
+    val isFollowing: Boolean = false
 )
 
 @Composable
-fun HomeFeedScreen(onNavigate: (String) -> Unit = {}) {
+fun HomeFeedScreen(
+    followedIds: Set<String> = emptySet(),
+    onFollowChange: (Set<String>) -> Unit = {},
+    onNavigate: (String) -> Unit = {}
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    var selectedTab by remember { mutableIntStateOf(0) }
+    var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     val tabsList = remember { listOf("For You", "Following", "Trending") }
     val scrollState = rememberLazyListState()
 
@@ -134,10 +140,10 @@ fun HomeFeedScreen(onNavigate: (String) -> Unit = {}) {
     }
 
     // --- SCREEN PLAYER STATE ENGINE ---
-    var currentPlayingIndex by remember { mutableStateOf<Int?>(0) }
-    var isAudioPlayingGlobal by remember { mutableStateOf(true) }
-    var currentPlaybackPosition by remember { mutableIntStateOf(0) }
-    var trackTotalDuration by remember { mutableIntStateOf(120000) }
+    var currentPlayingIndex by rememberSaveable { mutableStateOf<Int?>(0) }
+    var isAudioPlayingGlobal by rememberSaveable { mutableStateOf(true) }
+    var currentPlaybackPosition by rememberSaveable { mutableIntStateOf(0) }
+    var trackTotalDuration by rememberSaveable { mutableIntStateOf(120000) }
 
     val activePost = remember(currentPlayingIndex) {
         currentPlayingIndex?.let { index -> if (index in feedList.indices) feedList[index] else null }
@@ -272,6 +278,10 @@ fun HomeFeedScreen(onNavigate: (String) -> Unit = {}) {
                     isGlobalPlaying = isThisCardPlaying,
                     currentPosition = if (isActiveCard) currentPlaybackPosition else 0,
                     totalDuration = if (isActiveCard) trackTotalDuration else 120000,
+                    isFollowing = post.isFollowing || post.id in followedIds,
+                    onFollowClick = {
+                        onFollowChange(followedIds + post.id)
+                    },
                     onProfileClick = {
                         onNavigate("story_route/${post.profileName}")
                     },
@@ -302,4 +312,3 @@ fun HomeFeedScreen(onNavigate: (String) -> Unit = {}) {
 fun HomeFeedScreenPreview() {
     HomeFeedScreen()
 }
-

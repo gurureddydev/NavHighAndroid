@@ -97,7 +97,7 @@ fun StoryItem1(image: Int, name: String) {
             }
         }
 
-        Spacer(modifier = Modifier.height(6.dp))
+        Spacer(modifier = Modifier.height(2.dp))
 
         Text(
             text = name,

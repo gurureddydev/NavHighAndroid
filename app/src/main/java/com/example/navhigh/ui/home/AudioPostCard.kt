@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -78,6 +79,11 @@ fun AutoAdvancingAudioFeed(
     var isPlaying by remember { mutableStateOf(true) } // Automatically runs audio on open
     var currentPlaybackPosition by remember { mutableIntStateOf(0) }
     var trackTotalDuration by remember { mutableIntStateOf(120000) }
+
+    // Follow state now survives configuration changes (e.g. screen rotation),
+    // since rememberSaveable persists across them while plain remember does not.
+    // Once a track id is added here it is never removed, so Follow stays hidden for good.
+    var followedIds by rememberSaveable { mutableStateOf(setOf<Int>()) }
 
     // Re-instantiate/update player context explicitly when active target track index increments
     val activeTrack = remember(currentTrackIndex, tracks) {
@@ -175,12 +181,18 @@ fun AutoAdvancingAudioFeed(
     ) {
         itemsIndexed(tracks) { index, track ->
             val isActive = index == currentTrackIndex
-
             AudioPostCardElegant(
                 profileName = track.profileName,
                 username = track.username,
                 timeAgo = track.timeAgo,
                 profileResId = track.profileResId,
+
+                isFollowing = track.id in followedIds,
+                onFollowClick = {
+                    // Add-only: once true, this id can never go back to "not following".
+                    followedIds = followedIds + track.id
+                },
+
                 title = track.title,
                 tags = track.tags,
                 artworkResId = track.artworkResId,
@@ -232,15 +244,21 @@ fun AudioPostCardElegant(
     totalDuration: Int = 120000,
     onPlayToggle: (Boolean) -> Unit = {},
     onSeek: (Int) -> Unit = {},
-    onProfileClick: () -> Unit = {}
+    onProfileClick: () -> Unit = {},
+
+    isFollowing: Boolean,
+    onFollowClick: () -> Unit
 ) {
+    var localFollowing by remember(isFollowing) { mutableStateOf(isFollowing) }
     var isLiked by remember { mutableStateOf(false) }
     var likesCount by remember { mutableIntStateOf(initialLikes) }
     var isSaved by remember { mutableStateOf(false) }
-    var isFollowing by remember { mutableStateOf(false) }
 
     val progress = remember(currentPosition, totalDuration) {
-        if (totalDuration > 0) (currentPosition.toFloat() / totalDuration.toFloat()).coerceIn(0f, 1f) else 0f
+        if (totalDuration > 0)
+            (currentPosition.toFloat() / totalDuration.toFloat()).coerceIn(0f, 1f)
+        else
+            0f
     }
 
     Card(
@@ -258,14 +276,17 @@ fun AudioPostCardElegant(
                 Image(
                     painter = painterResource(id = profileResId),
                     contentDescription = null,
-                    modifier = Modifier
+                    modifier= Modifier
                         .size(38.dp)
                         .clip(CircleShape)
                         .clickable { onProfileClick() },
                     contentScale = ContentScale.Crop
                 )
                 Spacer(modifier = Modifier.width(10.dp))
-                Column(modifier = Modifier.weight(1f)) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy((-2).dp)
+                ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = profileName,
@@ -280,25 +301,29 @@ fun AudioPostCardElegant(
                     }
                     Text(text = "$username • $timeAgo", color = Color.Gray, fontSize = 11.sp)
                 }
-
-                OutlinedButton(
-                    onClick = { isFollowing = !isFollowing },
-                    modifier = Modifier
-                        .padding(bottom = 5.dp)
-                        .height(34.dp),
-                    contentPadding = PaddingValues(horizontal = 18.dp, vertical = 0.dp),
-                    shape = RoundedCornerShape(50),
-                    border = borderStroke(1.dp, FollowBorderBlue),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = Color.Transparent
-                    )
-                ) {
-                    Text(
-                        text = if (isFollowing) "Following" else "Follow",
-                        color = FollowBorderBlue,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                if (!localFollowing) {
+                    OutlinedButton(
+                        onClick = {
+                            localFollowing = true
+                            onFollowClick()
+                        },
+                        modifier = Modifier
+                            .padding(start = 12.dp, bottom = 5.dp)
+                            .height(34.dp),
+                        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 0.dp),
+                        shape = RoundedCornerShape(50),
+                        border = borderStroke(1.dp, FollowBorderBlue),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = Color.Transparent
+                        )
+                    ) {
+                        Text(
+                            text = "Follow",
+                            color = FollowBorderBlue,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.width(2.dp))
@@ -524,7 +549,10 @@ fun AudioPostCardIvanaPreview() {
         accentColor = Color(0xFFFFC107),
         isGlobalPlaying = true, // Autoplays smoothly mock visible in dynamic preview layout
         currentPosition = 42000,
-        totalDuration = 180000
+        totalDuration = 180000,
+
+        isFollowing = false,
+        onFollowClick = {}
     )
 }
 
@@ -542,7 +570,9 @@ fun AudioPostCardEchoFlowPreview() {
         accentColor = Color(0xFF00FFCC),
         isGlobalPlaying = false,
         currentPosition = 0,
-        totalDuration = 60000
+        totalDuration = 60000,
+        isFollowing = false,
+        onFollowClick = {}
     )
 }
 
@@ -560,7 +590,9 @@ fun AudioPostCardArjunPreview() {
         accentColor = Color(0xFF00B2FE),
         isGlobalPlaying = false,
         currentPosition = 0,
-        totalDuration = 240000
+        totalDuration = 240000,
+        isFollowing = false,
+        onFollowClick = {}
     )
 }
 
@@ -578,6 +610,8 @@ fun AudioPostCardMusicLabPreview() {
         accentColor = Color(0xFFFF5722),
         isGlobalPlaying = false,
         currentPosition = 0,
-        totalDuration = 300000
+        totalDuration = 300000 ,
+        isFollowing = false,
+        onFollowClick = {}
     )
 }

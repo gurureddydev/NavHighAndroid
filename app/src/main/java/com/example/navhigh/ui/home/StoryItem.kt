@@ -94,7 +94,7 @@ fun StoryItem1(image: Int, name: String, isLive: Boolean, onClick: () -> Unit) {
             }
         }
 
-        Spacer(modifier = Modifier.height(6.dp))
+        Spacer(modifier = Modifier.height(2.dp))
 
         Text(
             text = name,

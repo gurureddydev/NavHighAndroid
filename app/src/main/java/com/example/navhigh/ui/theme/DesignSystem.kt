@@ -45,4 +45,5 @@ object AppTypography {
     val BodySmall = 15.sp
     val LabelSmall = 12.sp
     val BadgeText = 10.sp
+
 }
