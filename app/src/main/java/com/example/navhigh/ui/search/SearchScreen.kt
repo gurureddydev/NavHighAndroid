@@ -14,56 +14,36 @@ import com.example.navhigh.ui.theme.*
 fun SearchScreen(onNavigate: (String) -> Unit = {}) {
     val recentSearches = remember { mutableStateListOf("Lofi Beats", "Motivation", "#podcast") }
 
-    Scaffold(
-        containerColor = Background
+    Scaffold(containerColor = Background
     ) { paddingValues ->
         // Applying paddingValues for system UI + your custom 5.dp padding
-        LazyColumn(
-            modifier = Modifier
+        LazyColumn(modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(9.dp)
-        ) {
-            item {
-                SearchHeader()
-            }
-            item {
-                SearchBar(onSearch = { query ->
-                    if (query.isNotBlank() && !recentSearches.contains(query)) {
-                        recentSearches.add(0, query)
-                    }
-                })
-            }
-            item {
-                Spacer(modifier = Modifier.height(10.dp))
+                .padding(9.dp)) {
+            item { SearchHeader() }
+            item { SearchBar(onSearch = { query -> if (query.isNotBlank() && !recentSearches.contains(query)) {
+                        recentSearches.add(0, query) } }) }
+            item { Spacer(modifier = Modifier.height(10.dp))
                 RecentSearches(
                     items = recentSearches,
                     onClearAll = { recentSearches.clear() },
-                    onRemoveItem = { item -> recentSearches.remove(item) }
-                )
-            }
-            item {
-                Spacer(modifier = Modifier.height(5.dp))
+                    onRemoveItem = { item -> recentSearches.remove(item) }) }
+            item { Spacer(modifier = Modifier.height(5.dp))
                 SuggestedForYou()
             }
-            item {
-                Spacer(modifier = Modifier.height(5.dp))
-                CategoryTabs()
-            }
-            item {
-                Spacer(modifier = Modifier.height(5.dp))
+            item { Spacer(modifier = Modifier.height(5.dp))
+                CategoryTabs() }
+            item { Spacer(modifier = Modifier.height(5.dp))
                 CreatorSection()
             }
-            item {
-                Spacer(modifier = Modifier.height(2.dp))
+            item { Spacer(modifier = Modifier.height(2.dp))
                 AudioSection()
             }
-            item {
-                Spacer(modifier = Modifier.height(AppDimensions.Padding28))
+            item { Spacer(modifier = Modifier.height(AppDimensions.Padding28))
                 PlaylistSection()
             }
-            item {
-                Spacer(modifier = Modifier.height(AppDimensions.Padding32))
+            item { Spacer(modifier = Modifier.height(AppDimensions.Padding32))
             }
         }
     }

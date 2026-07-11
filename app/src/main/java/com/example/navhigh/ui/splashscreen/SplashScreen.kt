@@ -130,113 +130,53 @@ fun SplashScreen(
 
             // BACKGROUND BAR
 
-            Box(
-
-                modifier = Modifier
-                    .width(
-                        AppDimensions.SplashLoadingBarWidth
-                    )
-                    .height(
-                        AppDimensions.SplashLoadingBarHeight
-                    )
-                    .clip(
-                        RoundedCornerShape(
-                            AppDimensions.SplashLoadingRadius
-                        )
-                    )
-                    .background(
-                        Color(0xFF2B3147)
-                    )
-
-
+            Box(modifier = Modifier
+                    .width(AppDimensions.SplashLoadingBarWidth)
+                    .height(AppDimensions.SplashLoadingBarHeight)
+                    .clip(RoundedCornerShape(AppDimensions.SplashLoadingRadius))
+                    .background(Color(0xFF2B3147))
             ) {
 
 
 
                 // ANIMATED PROGRESS
 
-                Box(
-
-                    modifier = Modifier
+                Box(modifier = Modifier
                         .fillMaxHeight()
                         .fillMaxWidth(progress.value)
-                        .clip(
-                            RoundedCornerShape(
-                                AppDimensions.SplashLoadingRadius
-                            )
-                        )
-                        .background(
-                            Color(0xFF2C8DFF)
-                        )
-
+                        .clip(RoundedCornerShape(AppDimensions.SplashLoadingRadius))
+                        .background(Color(0xFF2C8DFF))
                 )
 
 
             }
 
-
-
-
-
-            Spacer(
-
-                modifier = Modifier.height(
-                    AppDimensions.SplashLoadingTextSpacing
-                )
-
-            )
+            Spacer(modifier = Modifier.height(AppDimensions.SplashLoadingTextSpacing))
 
 
 
 
 
-            Text(
-
-                text = "Loading...",
-
-                color = Color.White.copy(
-                    alpha = 0.75f
-                ),
-
+            Text(text = "Loading...",
+                color = Color.White.copy(alpha = 0.75f),
                 fontSize = AppTypography.SplashLoadingTextSize,
-
                 fontWeight = FontWeight.Normal,
-
                 letterSpacing = 1.sp
-
             )
-
-
-
         }
-
-
     }
 
 
 }
-
-
-
-
 @Preview(
     showBackground = true,
     showSystemUi = true
 )
 @Composable
 fun SplashScreenPreview() {
-
-
     NavHighTheme {
-
-
         SplashScreen(
-
-            onLoadingFinished = {}
-
-        )
-
-
+            onLoadingFinished = {})
     }
 
 

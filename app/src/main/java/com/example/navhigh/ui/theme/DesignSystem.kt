@@ -86,6 +86,15 @@ object AppTypography {
 
     val NavBrandTaglineSize = 10.sp
 
+    // Bottom Navigation Typography
+
+    val BottomNavigationLabelSize = 10.sp
+
+    val NotificationBadgeTextSize = 9.sp
+
+    val PlaceholderTextSize = 20.sp
+
+
 
 
 

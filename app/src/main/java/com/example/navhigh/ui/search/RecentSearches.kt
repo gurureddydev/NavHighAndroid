@@ -31,11 +31,10 @@ fun RecentSearches(
     if (items.isEmpty()) return
 
     Column {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
+        Row(modifier = Modifier
+            .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+            verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = "Recent Searches",
                 fontSize = 14.sp,
@@ -49,12 +48,9 @@ fun RecentSearches(
                 modifier = Modifier.clickable { onClearAll() }
             )
         }
-
         Spacer(modifier = Modifier.height(8.dp))
 
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             items(items) { item ->
                 RecentSearchChip(
                     text = item,
@@ -66,23 +62,17 @@ fun RecentSearches(
 }
 
 @Composable
-fun RecentSearchChip(
-    text: String,
-    onRemove: () -> Unit
-) {
-    Row(
-        modifier = Modifier
+fun RecentSearchChip(text: String, onRemove: () -> Unit) {
+    Row(modifier = Modifier
             .clip(RoundedCornerShape(12.dp))
             .background(CardBlue)
             .padding(horizontal = 8.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+        verticalAlignment = Alignment.CenterVertically) {
         Icon(
             imageVector = Icons.Default.History,
             contentDescription = null,
             tint = SecondaryText,
-            modifier = Modifier.size(16.dp)
-        )
+            modifier = Modifier.size(16.dp))
 
         Spacer(modifier = Modifier.width(8.dp))
 
@@ -117,8 +107,7 @@ fun RecentSearchesPreview() {
     val sampleItems = remember { mutableStateListOf("Lofi Beats", "Motivation", "#podcast", "Arjun Beats") }
 
     NavHighTheme {
-        Column(
-            modifier = Modifier
+        Column(modifier = Modifier
                 .background(Color(0xFF121212))
                 .padding(20.dp)
         ) {

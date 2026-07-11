@@ -23,8 +23,7 @@ val SecondaryBlue = Color(0xFF3DA9FC)
 val TextGray = Color(0xFF808080)
 
 @Composable
-fun CategoryTabs(
-    modifier: Modifier = Modifier,
+fun CategoryTabs(modifier: Modifier = Modifier,
     onTabSelected: (Int) -> Unit = {}
 ) {
 
@@ -38,8 +37,7 @@ fun CategoryTabs(
 
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
 
-    Column(
-        modifier = modifier
+    Column(modifier = modifier
             .fillMaxWidth()
             .background(Color.Transparent)
     ) {

@@ -178,7 +178,7 @@ object AppDimensions {
     val OtpScreenHorizontalPadding = 16.dp
 
     val OtpScreenVerticalPadding = 16.dp
-    val OtpBorderWidth = 1.dp
+    val OtpBorderWidth =1.dp
 
 
 // Back Arrow
@@ -246,7 +246,7 @@ object AppDimensions {
 
 
 
-    val OtpBoxSize = 52.dp
+    val OtpBoxSize = 50.dp
     val OtpBoxRadius = 16.dp
     val OtpBoxSpacing = 8.dp
 
@@ -340,6 +340,20 @@ object AppDimensions {
     val ButtonLoaderSize = 30.dp
 
     val ButtonLoaderStrokeWidth = 3.dp
+
+    // Main Screen / Bottom Navigation
+
+    val BottomNavigationHeight = 76.dp
+
+    val BottomNavigationHorizontalPadding = 5.dp
+
+    val BottomNavigationDividerThickness = 1.dp
+
+    val BottomNavigationIconSize = 20.dp
+
+    val CreateIconSize = 30.dp
+
+    val BottomNavigationItemSpacing = 4.dp
 
 
 }

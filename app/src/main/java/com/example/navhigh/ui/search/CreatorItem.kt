@@ -39,14 +39,12 @@ import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun CreatorItem(name: String, handle: String, followers: String, isVerified: Boolean) {
-    Row(
-        modifier = Modifier
+    Row(modifier = Modifier
             .fillMaxWidth()
             .height(AppDimensions.CreatorItemHeight),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier
+        Box(modifier = Modifier
                 .size(AppDimensions.CreatorAvatarSize)
                 .clip(CircleShape)
                 .background(
@@ -59,8 +57,7 @@ fun CreatorItem(name: String, handle: String, followers: String, isVerified: Boo
                 .background(Color.Black) // Placeholder for image
         )
 
-        Column(
-            modifier = Modifier
+        Column(modifier = Modifier
                 .weight(1f)
                 .padding(start = 16.dp)
         ) {

@@ -41,14 +41,12 @@ fun AudioRow(title: String, creator: String, playCount: String, duration: String
             .height(AppDimensions.AudioRowHeight),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier
+        Box(modifier = Modifier
                 .size(AppDimensions.AudioThumbnailSize)
                 .clip(RoundedCornerShape(AppDimensions.Radius12))
                 .background(Color.DarkGray) // Placeholder
         ) {
-            Box(
-                modifier = Modifier
+            Box(modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(4.dp)
                     .size(32.dp)
@@ -65,13 +63,11 @@ fun AudioRow(title: String, creator: String, playCount: String, duration: String
             }
         }
 
-        Column(
-            modifier = Modifier
+        Column(modifier = Modifier
                 .weight(1f)
                 .padding(start = 16.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
+            Row(modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
