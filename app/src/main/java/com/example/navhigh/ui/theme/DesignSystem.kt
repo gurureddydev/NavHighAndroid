@@ -23,4 +23,70 @@ object AppTypography {
     val SocialButtonTextSize = 12.sp
     val OrTextSize = 14.sp
 
+
+    // ---------------- EMAIL SCREEN TEXT ----------------
+
+    val EmailTitleSize = 30.sp
+
+    val EmailDescriptionSize = 14.sp
+
+    val EmailDescriptionLineHeight = 25.sp
+
+    val EmailBottomTextSize = 16.sp
+    val TextFieldLabelSize = 12.sp
+
+    // BUTTON TEXT
+
+    val ButtonTextSize = 15.sp
+
+
+
+    val LoginForgotPasswordTextSize = 12.sp
+
+    val LoginOrTextSize = 14.sp
+
+    val LoginSocialButtonTextSize = 15.sp
+
+    // ---------------- OTP SCREEN ----------------
+
+
+    val OtpTitleSize = 42.sp
+
+
+    val OtpDescriptionSize = 18.sp
+
+
+    val OtpErrorTextSize = 14.sp
+
+
+    val OtpResendTextSize = 18.sp
+
+    // ---------------- OTP SCREEN ----------------
+
+
+
+
+    val OtpEmailSize = 14.sp
+
+
+    val OtpButtonTextSize = 16.sp
+
+
+    val DialogTitleSize = 22.sp
+
+    val DialogMessageSize = 16.sp
+
+    val DialogButtonTextSize = 16.sp
+    val DialogMessageLineHeight = 24.sp
+
+
+    val DialogButtonSize = 14.sp
+
+    val NavBrandTitleSize = 36.sp
+
+    val NavBrandTaglineSize = 10.sp
+
+
+
+
 }

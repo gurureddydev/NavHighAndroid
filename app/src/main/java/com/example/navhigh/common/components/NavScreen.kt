@@ -8,6 +8,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -20,7 +21,6 @@ import androidx.compose.ui.unit.sp
 import com.example.navhigh.R
 import com.example.navhigh.ui.theme.GradientEnd
 import com.example.navhigh.ui.theme.GradientStart
-
 
 
 // ---------------- LOGO ----------------
@@ -46,7 +46,6 @@ fun Logo(
 }
 
 
-
 // ---------------- TITLE ----------------
 
 @Composable
@@ -55,7 +54,6 @@ fun NavTitle(
     textSize: Dp = 36.dp
 ) {
 
-
     Row(
 
         modifier = modifier,
@@ -63,7 +61,6 @@ fun NavTitle(
         verticalAlignment = Alignment.CenterVertically
 
     ) {
-
 
         Text(
 
@@ -82,7 +79,6 @@ fun NavTitle(
         )
 
 
-
         Text(
 
             text = "High",
@@ -94,7 +90,6 @@ fun NavTitle(
                     colors = listOf(
 
                         GradientStart,
-
                         GradientEnd
 
                     )
@@ -109,7 +104,6 @@ fun NavTitle(
 
         )
 
-
     }
 
 }
@@ -121,25 +115,82 @@ fun NavTitle(
 @Composable
 fun NavTagline(
     modifier: Modifier = Modifier,
-    textSize: Dp = 10.dp
+    textSize: Dp = 10.dp,
+    gradientTagline: Boolean = false
 ) {
 
 
-    Text(
+    Row(
 
         modifier = modifier,
 
-        text = "Share Your Voice. Reach New Heights.",
+        horizontalArrangement = Arrangement.Center,
 
-        color = Color.White.copy(alpha = 0.9f),
+        verticalAlignment = Alignment.CenterVertically
 
-        fontSize = textSize.value.sp,
+    ) {
 
-        fontWeight = FontWeight.Normal,
 
-        textAlign = TextAlign.Center
+        Text(
 
-    )
+            text = "Share Your Voice.",
+
+            color = Color.White.copy(alpha = 0.9f),
+
+            fontSize = textSize.value.sp,
+
+            fontWeight = FontWeight.Normal,
+
+            textAlign = TextAlign.Center
+
+        )
+
+
+        Spacer(
+
+            modifier = Modifier.width(3.dp)
+
+        )
+
+
+        Text(
+
+            text = "Reach New Heights.",
+
+            style = TextStyle(
+
+                brush = if (gradientTagline) {
+
+                    Brush.horizontalGradient(
+
+                        colors = listOf(
+
+                            GradientStart,
+                            GradientEnd
+
+                        )
+
+                    )
+
+                } else {
+
+                    SolidColor(
+                        Color.White.copy(alpha = 0.9f)
+                    )
+
+                },
+
+                fontSize = textSize.value.sp,
+
+                fontWeight = FontWeight.Normal
+
+            ),
+
+            textAlign = TextAlign.Center
+
+        )
+
+    }
 
 
 }
@@ -161,7 +212,9 @@ fun NavBrand(
 
     taglineSize: Dp = 10.dp,
 
-    logoToTitleSpacing: Dp = 0.dp
+    logoToTitleSpacing: Dp = 0.dp,
+
+    gradientTagline: Boolean = false
 
 ) {
 
@@ -185,13 +238,11 @@ fun NavBrand(
         )
 
 
-
         Logo(
 
             size = logoSize
 
         )
-
 
 
         Spacer(
@@ -201,7 +252,6 @@ fun NavBrand(
         )
 
 
-
         NavTitle(
 
             textSize = titleSize
@@ -209,10 +259,11 @@ fun NavBrand(
         )
 
 
-
         NavTagline(
 
-            textSize = taglineSize
+            textSize = taglineSize,
+
+            gradientTagline = gradientTagline
 
         )
 
@@ -243,7 +294,9 @@ fun NavBrandPreview() {
     ) {
 
 
-        NavBrand()
+        NavBrand(
+            gradientTagline = true
+        )
 
 
     }

@@ -5,32 +5,86 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.core.view.WindowInsetsControllerCompat
+
 import com.example.navhigh.navigation.MainScreen
 import com.example.navhigh.ui.theme.NavHighTheme
 
+
 class MainActivity : ComponentActivity() {
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
+
 
         enableEdgeToEdge()
 
-        window.statusBarColor = Color.parseColor("#000814")
-        window.navigationBarColor = Color.parseColor("#000814")
+
+        window.statusBarColor =
+            Color.parseColor("#000814")
+
+
+        window.navigationBarColor =
+            Color.parseColor("#000814")
+
+
 
         WindowInsetsControllerCompat(
             window,
             window.decorView
         ).apply {
+
             isAppearanceLightStatusBars = false
+
             isAppearanceLightNavigationBars = false
+
         }
 
+
+
         setContent {
+
             NavHighTheme {
-                MainScreen()
+
+
+                MainApp()
+
             }
+
         }
+
+
     }
+
+}
+
+
+
+@Composable
+fun MainApp() {
+
+
+    androidx.compose.foundation.layout.Box(
+
+        modifier = Modifier
+            .windowInsetsPadding(
+                WindowInsets.statusBars
+            )
+
+    ) {
+
+
+        MainScreen()
+
+
+    }
+
+
 }

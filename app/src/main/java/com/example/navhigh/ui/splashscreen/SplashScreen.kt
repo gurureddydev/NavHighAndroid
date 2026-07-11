@@ -1,6 +1,8 @@
 package com.example.navhigh.ui.splashscreen
 
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +16,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -21,7 +25,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
-
 import com.example.navhigh.common.components.NavBrand
 import com.example.navhigh.ui.theme.AppDimensions
 import com.example.navhigh.ui.theme.AppTypography
@@ -29,9 +32,40 @@ import com.example.navhigh.ui.theme.DarkBackground
 import com.example.navhigh.ui.theme.NavHighTheme
 
 
-
 @Composable
-fun SplashScreen() {
+fun SplashScreen(
+    onLoadingFinished: () -> Unit
+) {
+
+
+    val progress = remember {
+        Animatable(0f)
+    }
+
+
+
+    LaunchedEffect(Unit) {
+
+
+        progress.animateTo(
+
+            targetValue = 1f,
+
+            animationSpec = tween(
+
+                durationMillis = 3000
+
+            )
+
+        )
+
+
+        onLoadingFinished()
+
+    }
+
+
+
 
 
     Box(
@@ -44,7 +78,7 @@ fun SplashScreen() {
 
 
 
-        // LOGO + TITLE + TAGLINE
+        // LOGO SECTION
 
         Column(
 
@@ -94,7 +128,7 @@ fun SplashScreen() {
 
 
 
-            // LOADING BAR
+            // BACKGROUND BAR
 
             Box(
 
@@ -114,17 +148,18 @@ fun SplashScreen() {
                         Color(0xFF2B3147)
                     )
 
+
             ) {
 
 
 
-                // PROGRESS
+                // ANIMATED PROGRESS
 
                 Box(
 
                     modifier = Modifier
                         .fillMaxHeight()
-                        .fillMaxWidth(0.42f)
+                        .fillMaxWidth(progress.value)
                         .clip(
                             RoundedCornerShape(
                                 AppDimensions.SplashLoadingRadius
@@ -172,6 +207,7 @@ fun SplashScreen() {
             )
 
 
+
         }
 
 
@@ -183,15 +219,10 @@ fun SplashScreen() {
 
 
 
-
 @Preview(
-
     showBackground = true,
-
     showSystemUi = true
-
 )
-
 @Composable
 fun SplashScreenPreview() {
 
@@ -199,9 +230,14 @@ fun SplashScreenPreview() {
     NavHighTheme {
 
 
-        SplashScreen()
+        SplashScreen(
+
+            onLoadingFinished = {}
+
+        )
 
 
     }
+
 
 }

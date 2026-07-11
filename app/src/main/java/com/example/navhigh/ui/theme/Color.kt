@@ -62,7 +62,7 @@ val WhiteBlue = Color(0xFFE9F5FF)
 // ---------------------------------------------------------------------
 // Text Colors
 // ---------------------------------------------------------------------
-
+val TextFieldError = Color(0xFFFF4D6D)
 val TextWhite = Color(0xFFFFFFFF)
 val TextGray = Color(0xFFB0B0B0)
 val TextGrayLight = Color(0xFFB5BFD9)
@@ -189,3 +189,55 @@ val CreateAccountColor = Color(0xFF008CFF)
 val LoginWhiteText = Color.White
 
 val ForgotPasswordBlue = Color(0xFF0090FF)
+
+val ErrorNeonRose = Color(0xFFFF4D6D)
+
+// Background
+
+// Error Colors
+val ErrorRed = Color(0xFFFF4B5C)        // Main error text / border
+val ErrorRedLight = Color(0xFFFF6B7A)   // Icon / highlight
+val ErrorContainer = Color(0xFF3A1018)  // Error background
+
+// Normal colors
+
+
+// App Background
+val BackgroundDark = Color(0xFF020613)
+val DialogBackground = Color(0xFF07112E)
+
+
+// Dialog Text
+val DialogTitleColor = Color(0xFFF5F7FF)
+val DialogMessageColor = Color(0xFFB8C0D9)
+
+
+// Dialog Buttons
+val DialogOkBlue = Color(0xFF2B7CFF)
+val DialogCreateRed = Color(0xFFFF4B5C)
+
+
+// Border / Glow
+val PrimaryCyan = Color(0xFF20C9FF)
+// Dialog
+val DialogOverlay = Color(0xBF000000)         // 75% black
+
+// Text
+val DialogTitle = Color(0xFFFFFFFF)
+val DialogMessage = Color(0xFFC7CBDA)
+
+// Buttons
+val DialogPositive = Color(0xFF3B82F6)        // Login
+val DialogNegative = Color(0xFFFF5C70)
+
+// NavBrand Colors
+
+val NavBrandWhite = Color(0xFFFFFFFF)
+
+val NavBrandWhiteAlpha = Color(0xE6FFFFFF) // 90% white
+
+val ButtonLoaderColor = Color.White
+
+
+
+
