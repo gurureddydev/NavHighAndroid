@@ -238,6 +238,30 @@ val NavBrandWhiteAlpha = Color(0xE6FFFFFF) // 90% white
 
 val ButtonLoaderColor = Color.White
 
+val ScreenBackground = Color(0xFF000814)   // screen background
+val FieldBorder      = Color(0xFF2F6BFF)   // outlined text field border + checkbox unchecked border
+val SubtitleGray      = Color(0xFFB9C2D0)   // subtitle/description text, placeholder text
+
+// Gradient used in the Next button (3 stops)
+val GradientMid    = Color(0xFF2E7BFF)
+
+// Also used directly (not as named constants currently):
 
 
+
+
+
+val White = Color(0xFFFFFFFF)
+
+val GrayText = Color(0xFFB7B7B7)
+
+val HintText = Color(0xFF8F939A)
+
+val BlueStart = Color(0xFF2D2BFF)
+
+val BlueEnd = Color(0xFF19C6FF)
+
+
+val Transparent = Color.Transparent
+val PasswordDescriptionColor = Color(0xFFE2E8F0)
 

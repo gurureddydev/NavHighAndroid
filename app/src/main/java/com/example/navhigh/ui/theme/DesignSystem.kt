@@ -96,6 +96,37 @@ object AppTypography {
 
 
 
+    val TitleFontSize = 30.sp                         // "Create a password" title font size
+    val TitleLineHeight = 36.sp                       // "Create a password" title line height
 
+    val SubtitleFontSize = 16.sp                      // description text font size
+    val SubtitleLineHeight = 24.sp                    // description text line height
 
+    val PasswordPlaceholderFontSize = 18.sp           // "Password" placeholder text size
+
+    val CheckboxLabelFontSize = 16.sp                 // "Remember login info. Learn more" text size
+
+    val NextButtonFontSize = 18.sp                    // "Next" button text size
+
+    val AlreadyHaveAccountFontSize = 16.sp
+
+    val Title = 36.sp
+
+    val Description = 14.sp
+
+    val TextField = 20.sp
+
+    val Button = 22.sp
+
+    val RememberText = 16.sp
+
+    val BottomText = 22.sp
+
+    val PasswordDescriptionLineHeight = 20.sp
 }
+
+
+
+
+
+

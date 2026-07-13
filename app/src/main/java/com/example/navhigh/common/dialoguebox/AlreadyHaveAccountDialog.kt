@@ -1,11 +1,9 @@
-package com.example.navhigh.ui.email
+package com.example.navhigh.common.dialoguebox
 
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.navhigh.ui.theme.NavHighTheme
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,7 +21,6 @@ import androidx.compose.ui.window.Dialog
 import com.example.navhigh.ui.theme.AppDimensions
 import com.example.navhigh.ui.theme.AppTypography
 import com.example.navhigh.ui.theme.DialogBackground
-import com.example.navhigh.ui.theme.DialogMessage
 import com.example.navhigh.ui.theme.DialogNegative
 import com.example.navhigh.ui.theme.DialogPositive
 import com.example.navhigh.ui.theme.DialogTitle

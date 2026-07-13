@@ -356,4 +356,69 @@ object AppDimensions {
     val BottomNavigationItemSpacing = 4.dp
 
 
+    val OtpBoxWidth = 48.dp
+    val OtpBoxHeight = 56.dp
+
+
+    // Screen / layout
+    val CreatePasswordScreenMaxWidth = 480.dp        // max content width (tablet/laptop constraint)
+    val CreatePasswordScreenHorizontalPadding = 24.dp // screen horizontal padding
+    val CreatePasswordScreenTopPadding = 24.dp        // screen top padding
+
+    // Back button
+    val BackButtonIconSize = 40.dp                    // back arrow icon size
+
+    // Spacers
+    val SpacerAfterBackArrow = 24.dp                  // spacer between back arrow and title
+    val SpacerAfterTitle = 16.dp                      // spacer between title and subtitle
+    val SpacerAfterSubtitle = 28.dp                   // spacer before password field
+    val SpacerAfterPasswordField = 20.dp              // spacer before checkbox row
+    val SpacerCheckboxToText = 4.dp                   // spacer between checkbox and its label
+    val SpacerAfterCheckboxRow = 28.dp                // spacer before Next button
+
+    // Password field
+    val PasswordFieldHeight = 66.dp                   // password field height
+    val PasswordFieldCornerRadius = 20.dp             // password field corner radius
+    val EyeIconSize = 24.dp                           // eye_open/eye_close icon size
+
+    // Next button
+    val NextButtonHeight = 56.dp                      // Next button height
+    val NextButtonCornerRadius = 28.dp
+
+    val ScreenPadding = 14.dp
+
+    val TopSpace = 10.dp
+
+    val BackToTitle = 20.dp
+
+    val TitleToDescription = 18.dp
+
+    val DescriptionToTextField = 15.dp
+
+
+
+    val TextFieldToRemember = 14.dp
+
+    val RememberToButton = 32.dp
+
+
+    val BottomSpace = 35.dp
+
+    val RememberGap = 8.dp
+
+    val CheckboxSize = 24.dp
+
+    val CheckboxCornerRadius = 8.dp
+
+    val CheckboxBorderWidth = 2.dp
+
+    val CheckboxTickSize = 18.dp
+
+    val CheckboxTextSpacing = 12.dp
+    val RememberTextSpacing = 6.dp
+    val PasswordContentMaxWidth = 412.dp
+
+    val PasswordTabletContentMaxWidth = 500.dp
+
+
 }

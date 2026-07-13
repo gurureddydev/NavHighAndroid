@@ -1,6 +1,7 @@
 package com.example.navhigh.ui.otp
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -175,19 +176,20 @@ fun OtpScreen(
                                         ""
 
                                 Box(
-                                    modifier=Modifier
-                                        .size(AppDimensions.OtpBoxSize)
+                                    modifier = Modifier
+                                        .width(AppDimensions.OtpBoxWidth)
+                                        .height(AppDimensions.OtpBoxHeight)
                                         .border(
-                                            width=AppDimensions.OtpBorderWidth,
-                                            color=if(isError)
+                                            width = AppDimensions.OtpBorderWidth,
+                                            color = if (isError)
                                                 Color.Red
                                             else
                                                 ForgotPasswordBlue,
-                                            shape=RoundedCornerShape(
+                                            shape = RoundedCornerShape(
                                                 AppDimensions.OtpBoxRadius
                                             )
                                         ),
-                                    contentAlignment=Alignment.Center
+                                    contentAlignment = Alignment.Center
                                 ){
 
                                     Text(

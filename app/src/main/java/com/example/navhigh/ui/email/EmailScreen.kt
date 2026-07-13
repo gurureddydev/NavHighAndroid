@@ -1,5 +1,6 @@
 package com.example.navhigh.ui.email
 
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -26,9 +27,10 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import kotlinx.coroutines.delay
+
 import com.example.navhigh.R
 import com.example.navhigh.common.button.Button
+import com.example.navhigh.common.components.AlreadyHaveAccount
 import com.example.navhigh.common.textfield.EmailTextField
 import com.example.navhigh.ui.theme.AppDimensions
 import com.example.navhigh.ui.theme.AppTypography
@@ -37,154 +39,420 @@ import com.example.navhigh.ui.theme.ForgotPasswordBlue
 import com.example.navhigh.ui.theme.LoginBackground
 import com.example.navhigh.ui.theme.NavHighTheme
 
+import kotlinx.coroutines.delay
+
+
+
 @Composable
 fun EmailScreen(
-    onNextClick:(String)->Unit={},
-    onBackClick:()->Unit={},
-    onLoginClick:()->Unit={}
-){
 
-    var email by remember{ mutableStateOf("") }
-    var emailError by remember{ mutableStateOf(false) }
-    var showLoginDialog by remember { mutableStateOf(false) }
-    var isLoading by remember{ mutableStateOf(false) }
+    onNextClick: (String) -> Unit = {},
 
-    Box(modifier=Modifier
+    onBackClick: () -> Unit = {},
+
+    onLoginClick: () -> Unit = {}
+
+) {
+
+
+    var email by remember {
+
+        mutableStateOf("")
+
+    }
+
+
+    var emailError by remember {
+
+        mutableStateOf(false)
+
+    }
+
+
+    var isLoading by remember {
+
+        mutableStateOf(false)
+
+    }
+
+
+
+
+    Box(
+
+        modifier = Modifier
+
             .fillMaxSize()
-            .background(LoginBackground)){
 
-        Column(modifier=Modifier
-                .widthIn(max=AppDimensions.EmailContentMaxWidth)
+            .background(LoginBackground)
+
+    ) {
+
+
+
+        Column(
+
+            modifier = Modifier
+
+                .widthIn(
+                    max = AppDimensions.EmailContentMaxWidth
+                )
+
                 .fillMaxSize()
-                .align(Alignment.TopCenter)
+
                 .padding(
-                    horizontal=AppDimensions.EmailScreenHorizontalPadding,
-                    vertical=AppDimensions.EmailScreenVerticalPadding
+
+                    horizontal = AppDimensions.EmailScreenHorizontalPadding,
+
+                    vertical = AppDimensions.EmailScreenVerticalPadding
+
                 ),
-            verticalArrangement=Arrangement.Top,
-            horizontalAlignment=Alignment.Start
-        ){
 
-            Image(painter=painterResource(
-                    id=R.drawable.left_arrow),
-                contentDescription="Back Arrow",
-                colorFilter=ColorFilter.tint(
-                    Color.White),
-                modifier=Modifier
-                    .size(AppDimensions.EmailBackArrowSize)
-                    .clickable{ onBackClick() })
 
-            Spacer(modifier=Modifier.height(AppDimensions.EmailBackArrowSpacing))
+            verticalArrangement = Arrangement.SpaceBetween,
 
-            Text(
-                text="What's your",
-                color=Color.White,
-                fontSize=AppTypography.EmailTitleSize,
-                fontWeight=FontWeight.Bold
-            )
 
-            Text(
-                text="email?",
-                color=ForgotPasswordBlue,
-                fontSize=AppTypography.EmailTitleSize,
-                fontWeight=FontWeight.Bold
-            )
+            horizontalAlignment = Alignment.Start
 
-            Spacer(modifier=Modifier.height(AppDimensions.EmailDescriptionSpacing))
 
-            Text(
-                text="Enter the email where you can\nbe contacted. No one will see this\non your profile.",
-                color=Color.LightGray,
-                fontSize=AppTypography.EmailDescriptionSize,
-                lineHeight=AppTypography.EmailDescriptionLineHeight
-            )
-            Spacer(modifier=Modifier.height(AppDimensions.EmailTextFieldSpacing)
-            )
+        ) {
 
-            EmailTextField(
-                value=email,
-                isError=emailError,
-                onValueChange={
-                    email=it
-                    emailError=false
-                }
-            )
 
-            if(emailError){
-                Spacer(modifier=Modifier.height(AppDimensions.EmailErrorSpacing))
 
-                Text(
-                    text="Enter a correct email address,\nlike name@example.com",
-                    color=ErrorNeonRose,
-                    fontSize=AppTypography.EmailDescriptionSize,
-                    lineHeight=AppTypography.EmailDescriptionLineHeight)
-            }
-            Spacer(modifier=Modifier.height(AppDimensions.EmailButtonSpacing))
+            Column {
 
-            Button(text="Next", isLoading=isLoading,
-                onClick={
-                    val emailPattern=Regex(
-                        "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$"
+
+                Image(
+
+                    painter = painterResource(
+
+                        id = R.drawable.left_arrow
+
+                    ),
+
+                    contentDescription = "Back Arrow",
+
+                    colorFilter = ColorFilter.tint(Color.White),
+
+                    modifier = Modifier
+
+                        .size(
+
+                            AppDimensions.EmailBackArrowSize
+
+                        )
+
+                        .clickable {
+
+                            onBackClick()
+
+                        }
+
+                )
+
+
+
+                Spacer(
+
+                    modifier = Modifier.height(
+
+                        AppDimensions.EmailBackArrowSpacing
+
                     )
 
-                    if(email.matches(emailPattern)){
-                        emailError=false
-                        isLoading=true
-                    }else{ emailError=true }
-                })
-
-            Spacer(modifier=Modifier.height(AppDimensions.EmailBottomTextSpacing))
+                )
 
 
-            Text(
-                text="I already have an account",
-                color=ForgotPasswordBlue,
-                fontSize=AppTypography.EmailBottomTextSize,
-                fontWeight=FontWeight.SemiBold,
-                modifier=Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .clickable{
-                        showLoginDialog=true
+
+                Text(
+
+                    text = "What's your",
+
+                    color = Color.White,
+
+                    fontSize = AppTypography.EmailTitleSize,
+
+                    fontWeight = FontWeight.Bold
+
+                )
+
+
+
+                Text(
+
+                    text = "email?",
+
+                    color = ForgotPasswordBlue,
+
+                    fontSize = AppTypography.EmailTitleSize,
+
+                    fontWeight = FontWeight.Bold
+
+                )
+
+
+
+                Spacer(
+
+                    modifier = Modifier.height(
+
+                        AppDimensions.EmailDescriptionSpacing
+
+                    )
+
+                )
+
+
+
+                Text(
+
+                    text = "Enter the email where you can\nbe contacted. No one will see this\non your profile.",
+
+                    color = Color.LightGray,
+
+                    fontSize = AppTypography.EmailDescriptionSize,
+
+                    lineHeight = AppTypography.EmailDescriptionLineHeight
+
+                )
+                Spacer(
+
+                    modifier = Modifier.height(
+
+                        AppDimensions.EmailTextFieldSpacing
+
+                    )
+
+                )
+
+
+
+
+
+                EmailTextField(
+
+                    value = email,
+
+                    isError = emailError,
+
+                    onValueChange = {
+
+
+                        email = it
+
+
+                        emailError = false
+
+
                     }
+
+                )
+
+
+
+
+
+                if(emailError){
+
+
+
+                    Spacer(
+
+                        modifier = Modifier.height(
+
+                            AppDimensions.EmailErrorSpacing
+
+                        )
+
+                    )
+
+
+
+
+
+                    Text(
+
+                        text = "Enter a correct email address,\nlike name@example.com",
+
+
+                        color = ErrorNeonRose,
+
+
+                        fontSize = AppTypography.EmailDescriptionSize,
+
+
+                        lineHeight = AppTypography.EmailDescriptionLineHeight
+
+                    )
+
+
+                }
+
+
+
+
+
+                Spacer(
+
+                    modifier = Modifier.height(
+
+                        AppDimensions.EmailButtonSpacing
+
+                    )
+
+                )
+
+
+
+
+
+
+                Button(
+
+                    text = "Next",
+
+
+                    isLoading = isLoading,
+
+
+                    onClick = {
+
+
+
+                        val emailPattern = Regex(
+
+                            "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$"
+
+                        )
+
+
+
+
+                        if(email.matches(emailPattern)){
+
+
+
+                            emailError = false
+
+
+
+                            isLoading = true
+
+
+
+
+                        }else{
+
+
+
+                            emailError = true
+
+
+
+
+                        }
+
+
+
+                    }
+
+
+                )
+
+
+            }
+
+
+
+
+            // THIS WILL STAY AT THE BOTTOM
+
+            AlreadyHaveAccount(
+
+                onLogin = {
+
+
+                    onLoginClick()
+
+
+                },
+
+
+                onContinue = {
+
+
+                }
+
+
             )
+
+
 
         }
 
+
     }
+
+
+
 
 
     if(isLoading){
+
+
+
         LaunchedEffect(Unit){
+
+
+
             delay(5000)
-            isLoading=false
+
+
+
+            isLoading = false
+
+
+
             onNextClick(email)
+
+
+
         }
+
+
     }
 
 
-    if(showLoginDialog){
-
-        AlreadyHaveAccountDialog(
-
-            onDismiss={ showLoginDialog=false },
-
-            onContinue= {showLoginDialog=false },
-
-            onLogin={ showLoginDialog=false
-                onLoginClick()
-            }
-        )
-    }
 }
 @Preview(
-    showBackground=true,
-    showSystemUi=true,
-    device="spec:width=412dp,height=915dp,dpi=420"
+    showBackground = true,
+    showSystemUi = true,
+    device = "spec:width=412dp,height=915dp,dpi=420"
 )
 @Composable
-fun EmailScreenPreview(){
+fun EmailScreenPhonePreview() {
 
-    NavHighTheme{
+    NavHighTheme {
+
+        EmailScreen()
+
+    }
+
+}
+
+
+
+
+
+@Preview(
+    showBackground = true,
+    showSystemUi = true,
+    device = "spec:width=800dp,height=1280dp,dpi=240"
+)
+@Composable
+fun EmailScreenTabletPreview() {
+
+    NavHighTheme {
 
         EmailScreen()
 
