@@ -1,8 +1,21 @@
 package com.example.navhigh.ui.name
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -13,24 +26,23 @@ import com.example.navhigh.common.components.AlreadyHaveAccount
 import com.example.navhigh.common.components.BackArrow
 import com.example.navhigh.common.components.ScreenTitle
 import com.example.navhigh.common.components.TitlePart
-import com.example.navhigh.common.textfield.FullNameTextField
+import com.example.navhigh.common.textfield.UsernameTextField
 import com.example.navhigh.ui.theme.AppDimensions
 import com.example.navhigh.ui.theme.LoginBackground
 
 @Composable
-fun FullNameScreen(
+fun UserNameScreen(
     onBackClick: () -> Unit,
     onNextClick: () -> Unit,
     onLoginClick: () -> Unit,
     onContinueClick: () -> Unit
 ) {
 
-    var fullName by remember {
-        mutableStateOf("")
+    var username by remember {
+        mutableStateOf("t.poornaprakash")
     }
 
     val configuration = LocalConfiguration.current
-
     val isTablet = configuration.screenWidthDp >= 600
 
     Box(
@@ -41,28 +53,28 @@ fun FullNameScreen(
 
         Column(
             modifier = Modifier
-                .align(
-                    if (isTablet)
-                        Alignment.TopStart
-                    else
-                        Alignment.TopCenter
-                )
+                .align(Alignment.TopCenter)
                 .statusBarsPadding()
-                .padding(
-                    start = if (isTablet) 120.dp else AppDimensions.EmailScreenHorizontalPadding,
-                    end = AppDimensions.EmailScreenHorizontalPadding,
-                    top = if (isTablet) 20.dp else AppDimensions.EmailScreenVerticalPadding
-                )
+                .fillMaxWidth()
                 .widthIn(
-                    max = if (isTablet) 440.dp
-                    else AppDimensions.EmailContentMaxWidth
+                    max = AppDimensions.EmailContentMaxWidth
+                )
+                .padding(
+                    horizontal = AppDimensions.EmailScreenHorizontalPadding,
+                    vertical = if (isTablet)
+                        60.dp
+                    else
+                        AppDimensions.EmailScreenVerticalPadding
                 ),
 
             horizontalAlignment = Alignment.Start
+
         ) {
 
             BackArrow(
-                onClick = onBackClick
+                onClick = {
+                    onBackClick()
+                }
             )
 
             Spacer(
@@ -75,78 +87,94 @@ fun FullNameScreen(
                 lines = listOf(
 
                     listOf(
+
                         TitlePart(
-                            text = "What's your name?"
+                            text = "Create a"
                         )
+
+                    ),
+
+                    listOf(
+
+                        TitlePart(
+                            text = "username"
+                        )
+
                     )
 
-
                 )
-            )
-            Spacer(
-                modifier = Modifier.height(
-                    if (isTablet) 20.dp
-                    else AppDimensions.EmailDescriptionSpacing
-                )
-            )
-
-            // Description
-            // Remove this block if you don't want a description.
-            androidx.compose.material3.Text(
-                text = "Enter your full name so people can\nfind and recognize you.",
-                color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.70f)
             )
 
             Spacer(
-                modifier = Modifier.height(
-                    if (isTablet) 28.dp else 20.dp
-                )
+                modifier = Modifier.height(16.dp)
             )
 
-            FullNameTextField(
-                value = fullName,
+            UsernameDescription(
+                text = "Add a username or use our suggestion.\nYou can change this at any time."
+            )
+
+            Spacer(
+                modifier = Modifier.height(28.dp)
+            )
+            UsernameTextField(
+                value = username,
                 onValueChange = {
-                    fullName = it
+                    username = it
                 }
             )
 
             Spacer(
                 modifier = Modifier.height(
-                    if (isTablet) 28.dp
-                    else AppDimensions.EmailButtonSpacing
+                    AppDimensions.EmailButtonSpacing
                 )
             )
 
             Button(
                 text = "Next",
                 onClick = {
-                    if (fullName.trim().isNotEmpty()) {
+                    if (username.trim().isNotEmpty()) {
                         onNextClick()
                     }
                 }
             )
 
-            // Push everything below to the bottom
             Spacer(
                 modifier = Modifier.weight(1f)
             )
 
-        } // End of top Column
+        }
+
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .navigationBarsPadding()
                 .fillMaxWidth()
+                .widthIn(
+                    max = AppDimensions.EmailContentMaxWidth
+                )
                 .padding(
-                    bottom = 24.dp
+                    horizontal = AppDimensions.EmailScreenHorizontalPadding,
+                    vertical = 24.dp
                 ),
 
             horizontalAlignment = Alignment.CenterHorizontally
+
         ) {
 
             AlreadyHaveAccount(
-                onLogin = onLoginClick,
-                onContinue = onContinueClick
+
+                onLogin = {
+
+                    onLoginClick()
+
+                },
+
+                onContinue = {
+
+                    onContinueClick()
+
+                }
+
             )
 
         }
@@ -155,15 +183,20 @@ fun FullNameScreen(
 
 }
 
+@Composable
+fun UsernameDescription(text: String) {
+    TODO("Not yet implemented")
+}
+
 @Preview(
     showBackground = true,
     showSystemUi = true,
     name = "Phone Preview"
 )
 @Composable
-fun FullNameScreenPhonePreview() {
+fun UserNameScreenPhonePreview() {
 
-    FullNameScreen(
+    UserNameScreen(
         onBackClick = {},
         onNextClick = {},
         onLoginClick = {},
@@ -179,9 +212,9 @@ fun FullNameScreenPhonePreview() {
     device = "spec:width=800dp,height=1280dp,dpi=240"
 )
 @Composable
-fun FullNameScreenTabletPreview() {
+fun UserNameScreenTabletPreview() {
 
-    FullNameScreen(
+    UserNameScreen(
         onBackClick = {},
         onNextClick = {},
         onLoginClick = {},

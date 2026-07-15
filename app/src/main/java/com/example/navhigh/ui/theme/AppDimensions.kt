@@ -92,12 +92,13 @@ object AppDimensions {
     val GoogleButtonSpacing = 4.dp
 
     val AccountButtonSpacing = 12.dp
+    val TextFieldBorderWidth = 1.dp
 
 
-    val TextFieldHeight = 70.dp
+    val TextFieldHeight = 66.dp
     val TextEmailHeight=70.dp
 
-    val TextFieldRadius = 14.dp
+    val TextFieldRadius = 15.dp
 
 
     val SocialButtonHeight = 48.dp
@@ -250,7 +251,7 @@ object AppDimensions {
     val OtpBoxRadius = 16.dp
     val OtpBoxSpacing = 8.dp
 
-    val EmailErrorSpacing = 100.dp
+    val EmailErrorSpacing = 0.dp
 
 
     // Dialog Size

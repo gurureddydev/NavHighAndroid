@@ -1,8 +1,6 @@
 package com.example.navhigh.ui.otp
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -15,10 +13,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -37,14 +35,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.navhigh.R
 import com.example.navhigh.common.button.Button
+import com.example.navhigh.common.components.BackArrow
+import com.example.navhigh.common.components.ScreenTitle
+import com.example.navhigh.common.components.TitlePart
 import com.example.navhigh.ui.theme.AppDimensions
 import com.example.navhigh.ui.theme.AppTypography
 import com.example.navhigh.ui.theme.ForgotPasswordBlue
@@ -86,42 +84,55 @@ fun OtpScreen(
             horizontalAlignment=Alignment.Start
         ){
 
-            Image(
-                painter=painterResource(id=R.drawable.left_arrow),
-                contentDescription="Back",
-                colorFilter=ColorFilter.tint(Color.White),
-                modifier=Modifier
-                    .size(AppDimensions.OtpBackArrowSize)
-                    .clickable{
-                        onBackClick()
-                    }
+            BackArrow(
+
+                onClick = {
+
+                    onBackClick()
+
+                }
+
             )
 
             Spacer(modifier=Modifier.height(AppDimensions.OtpBackArrowSpacing))
 
-            Text(
-                text="Enter the",
-                color=Color.White,
-                fontSize=AppTypography.EmailTitleSize,
-                fontWeight=FontWeight.Bold
+            ScreenTitle(
+
+                lines = listOf(
+
+
+                    // First line
+                    listOf(
+
+                        TitlePart(
+                            text = "Enter the"
+                        )
+
+                    ),
+
+
+                    // Second line with mixed colors
+                    listOf(
+
+                        TitlePart(
+                            text = "confirmation "
+                        ),
+
+
+                        TitlePart(
+
+                            text = "code",
+
+                            color = ForgotPasswordBlue
+
+                        )
+
+                    )
+
+
+                )
+
             )
-
-            Row{
-
-                Text(
-                    text="confirmation ",
-                    color=Color.White,
-                    fontSize=AppTypography.EmailTitleSize,
-                    fontWeight=FontWeight.Bold
-                )
-
-                Text(
-                    text="code",
-                    color=ForgotPasswordBlue,
-                    fontSize=AppTypography.EmailTitleSize,
-                    fontWeight=FontWeight.Bold
-                )
-            }
 
             Spacer(modifier=Modifier.height(AppDimensions.OtpTitleSpacing))
 

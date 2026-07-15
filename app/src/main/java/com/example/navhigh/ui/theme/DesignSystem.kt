@@ -31,6 +31,7 @@ object AppTypography {
     val EmailDescriptionSize = 14.sp
 
     val EmailDescriptionLineHeight = 25.sp
+    val TextFieldTextSize = 16.sp
 
     val EmailBottomTextSize = 16.sp
     val TextFieldLabelSize = 12.sp
@@ -122,7 +123,7 @@ object AppTypography {
 
     val BottomText = 22.sp
 
-    val PasswordDescriptionLineHeight = 20.sp
+
 }
 
 
