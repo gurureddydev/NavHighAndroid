@@ -4,7 +4,6 @@ package com.example.navhigh.navigation
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -18,13 +17,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 
 
-import com.example.navhigh.R
 import com.example.navhigh.ui.create.CreateScreen
 import com.example.navhigh.ui.email.EmailScreen
 import com.example.navhigh.ui.home.HomeFeedScreen
@@ -33,6 +30,9 @@ import com.example.navhigh.ui.otp.OtpScreen
 import com.example.navhigh.ui.password.PasswordScreen
 import com.example.navhigh.ui.search.SearchScreen
 import com.example.navhigh.ui.splashscreen.SplashScreen
+import com.example.navhigh.ui.name.FullNameScreen
+import com.example.navhigh.ui.name.UserNameScreen
+
 import com.example.navhigh.ui.theme.AppDimensions
 import com.example.navhigh.ui.theme.AppTypography
 import com.example.navhigh.ui.theme.NavHighTheme
@@ -43,6 +43,7 @@ import com.example.navhigh.ui.theme.NavHighTheme
 fun MainScreen(){
 
 
+
     var showSplash by remember {
 
         mutableStateOf(true)
@@ -51,11 +52,14 @@ fun MainScreen(){
 
 
 
+
     var currentRoute by remember {
 
         mutableStateOf("Login")
 
     }
+
+
 
 
 
@@ -68,19 +72,37 @@ fun MainScreen(){
 
 
 
+
+    var userFullName by remember {
+
+        mutableStateOf("")
+
+    }
+
+
+
+
+
+
+
     if(showSplash){
+
+
 
         SplashScreen(
 
             onLoadingFinished = {
 
-                showSplash=false
 
-                currentRoute="Login"
+                showSplash = false
+
+                currentRoute = "Login"
+
 
             }
 
         )
+
 
         return
 
@@ -89,23 +111,38 @@ fun MainScreen(){
 
 
 
-    if(currentRoute=="Login"){
+
+
+
+
+    if(currentRoute == "Login"){
+
+
 
         LoginScreen(
 
+
             onCreateAccountClick = {
 
-                currentRoute="Email"
+
+                currentRoute = "Email"
+
 
             },
+
 
             onLoginSuccess = {
 
-                currentRoute="Home"
+
+                currentRoute = "Home"
+
 
             }
 
+
         )
+
+
 
         return
 
@@ -117,34 +154,50 @@ fun MainScreen(){
 
 
 
-    if(currentRoute=="Email"){
+
+
+    if(currentRoute == "Email"){
+
+
 
         EmailScreen(
 
+
             onBackClick = {
 
-                currentRoute="Login"
+
+                currentRoute = "Login"
+
 
             },
+
 
             onLoginClick = {
 
-                currentRoute="Login"
+
+                currentRoute = "Login"
+
 
             },
 
-            onNextClick = {
 
-                    email ->
+            onNextClick = { email ->
 
 
-                userEmail=email
 
-                currentRoute="Otp"
+                userEmail = email
+
+
+                currentRoute = "Otp"
+
+
 
             }
 
+
         )
+
+
 
         return
 
@@ -157,17 +210,22 @@ fun MainScreen(){
 
 
 
-    if(currentRoute=="Otp"){
+
+    if(currentRoute == "Otp"){
+
 
 
         OtpScreen(
 
-            email=userEmail,
+
+            email = userEmail,
 
 
             onBackClick = {
 
-                currentRoute="Email"
+
+                currentRoute = "Email"
+
 
             },
 
@@ -175,58 +233,68 @@ fun MainScreen(){
             onNextClick = {
 
 
-                currentRoute="Password"
+
+                currentRoute = "Password"
 
 
             }
 
+
         )
+
 
 
         return
 
     }
+    if(currentRoute == "Password"){
 
-
-
-
-
-
-
-    if(currentRoute=="Password"){
 
 
         PasswordScreen(
 
 
+
             onBackClick = {
 
 
-                currentRoute="Otp"
+
+                currentRoute = "Otp"
+
 
 
             },
+
+
 
 
             onNextClick = {
 
 
-                currentRoute="Home"
+
+                currentRoute = "FullName"
+
 
 
             },
 
 
+
+
             onLoginClick = {
 
 
-                currentRoute="Login"
+
+                currentRoute = "Login"
+
 
 
             }
 
 
+
         )
+
 
 
         return
@@ -239,6 +307,158 @@ fun MainScreen(){
 
 
 
+
+
+    if(currentRoute == "FullName"){
+
+
+
+        FullNameScreen(
+
+
+
+            onBackClick = {
+
+
+
+                currentRoute = "Password"
+
+
+
+            },
+
+
+
+
+            onNextClick = { name ->
+
+
+
+                userFullName = name
+
+
+
+                currentRoute = "Username"
+
+
+
+            },
+
+
+
+
+            onLoginClick = {
+
+
+
+                currentRoute = "Login"
+
+
+
+            },
+
+
+
+
+            onContinueClick = {
+
+
+
+                currentRoute = "FullName"
+
+
+
+            }
+
+
+
+        )
+
+
+
+        return
+
+    }
+
+
+
+
+
+
+
+
+
+    if(currentRoute == "Username"){
+
+
+
+        UserNameScreen(
+
+
+
+            fullName = userFullName,
+
+
+
+
+            onBackClick = {
+
+
+
+                currentRoute = "FullName"
+
+
+
+            },
+
+
+
+
+            onNextClick = {
+
+
+
+                currentRoute = "Home"
+
+
+
+            },
+
+
+
+
+            onLoginClick = {
+
+
+
+                currentRoute = "Login"
+
+
+
+            },
+
+
+
+
+            onContinueClick = {
+
+
+
+                currentRoute = "Username"
+
+
+
+            }
+
+
+
+        )
+
+
+
+        return
+
+    }
     Scaffold(
 
 
@@ -249,19 +469,25 @@ fun MainScreen(){
         bottomBar = {
 
 
+
             BottomNavigationBar(
 
-                currentRoute=currentRoute,
+
+                currentRoute = currentRoute,
 
 
-                onRouteSelected = {
 
-                        newRoute:String ->
+                onRouteSelected = { newRoute ->
 
 
-                    currentRoute=newRoute
+
+                    currentRoute = newRoute
+
+
 
                 }
+
+
 
             )
 
@@ -269,20 +495,31 @@ fun MainScreen(){
         }
 
 
+
     ){ innerPadding ->
+
+
+
 
 
 
 
         Box(
 
+
             modifier = Modifier
+
 
                 .padding(innerPadding)
 
+
                 .fillMaxSize()
 
+
+
         ){
+
+
 
 
 
@@ -290,13 +527,26 @@ fun MainScreen(){
 
 
 
+
+
+
+
                 "Home" -> {
+
+
 
 
                     HomeFeedScreen()
 
 
+
+
                 }
+
+
+
+
+
 
 
 
@@ -304,10 +554,18 @@ fun MainScreen(){
                 "Search" -> {
 
 
+
+
                     SearchScreen()
 
 
+
+
                 }
+
+
+
+
 
 
 
@@ -316,24 +574,38 @@ fun MainScreen(){
                 "Create" -> {
 
 
+
+
                     CreateScreen(
+
 
 
                         onCloseClick = {
 
 
-                            currentRoute="Home"
+
+                            currentRoute = "Home"
+
 
 
                         },
 
 
+
                         onDraftsClick = {}
+
+
 
                     )
 
 
+
+
                 }
+
+
+
+
 
 
 
@@ -342,14 +614,26 @@ fun MainScreen(){
                 "Notifications" -> {
 
 
+
+
                     PlaceholderScreen(
 
-                        title="Notifications Screen"
+
+
+                        title = "Notifications Screen"
+
+
 
                     )
 
 
+
+
                 }
+
+
+
+
 
 
 
@@ -358,23 +642,47 @@ fun MainScreen(){
                 "Profile" -> {
 
 
+
+
                     PlaceholderScreen(
 
-                        title="Profile Screen"
+
+
+                        title = "Profile Screen"
+
+
 
                     )
+
+
 
 
                 }
 
 
+
+
+
+
+
             }
+
+
+
+
+
 
 
         }
 
 
+
+
+
+
+
     }
+
 
 
 }
@@ -389,42 +697,53 @@ fun MainScreen(){
 
 @Composable
 fun PlaceholderScreen(
+
     title:String
+
 ){
+
 
 
     Box(
 
+
         modifier = Modifier.fillMaxSize(),
 
+
+
         contentAlignment = Alignment.Center
+
+
 
     ){
 
 
+
         Text(
 
-            text=title,
 
-            color=Color.White,
 
-            fontSize=20.sp
+            text = title,
+
+
+
+            color = Color.White,
+
+
+
+            fontSize = 20.sp
+
+
 
         )
 
 
+
     }
 
+
+
 }
-
-
-
-
-
-
-
-
-
 @Composable
 fun BottomNavigationBar(
 
@@ -433,6 +752,7 @@ fun BottomNavigationBar(
     onRouteSelected:(String)->Unit
 
 ){
+
 
 
     Column(
@@ -487,28 +807,33 @@ fun BottomNavigationBar(
 
                 ),
 
+
             verticalAlignment = Alignment.CenterVertically
 
         ){
 
 
 
+
+
             NavItem(
 
-                modifier=Modifier.weight(1f),
+                modifier = Modifier.weight(1f),
 
-                label="Home",
+                label = "Home",
 
-                selected=currentRoute=="Home",
+                selected = currentRoute == "Home",
 
-                iconOutlined=Icons.Outlined.Home,
+                iconOutlined = Icons.Outlined.Home,
 
-                iconFilled=Icons.Filled.Home,
+                iconFilled = Icons.Filled.Home,
 
-                onClick={
+                onClick = {
+
 
                     onRouteSelected("Home")
 
+
                 }
 
             )
@@ -517,22 +842,26 @@ fun BottomNavigationBar(
 
 
 
+
+
             NavItem(
 
-                modifier=Modifier.weight(1f),
+                modifier = Modifier.weight(1f),
 
-                label="Discover",
+                label = "Discover",
 
-                selected=currentRoute=="Search",
+                selected = currentRoute == "Search",
 
-                iconOutlined=Icons.Outlined.Explore,
+                iconOutlined = Icons.Outlined.Explore,
 
-                iconFilled=Icons.Filled.Explore,
+                iconFilled = Icons.Filled.Explore,
 
-                onClick={
+                onClick = {
+
 
                     onRouteSelected("Search")
 
+
                 }
 
             )
@@ -541,22 +870,26 @@ fun BottomNavigationBar(
 
 
 
+
+
             NavItem(
 
-                modifier=Modifier.weight(1f),
+                modifier = Modifier.weight(1f),
 
-                label="Create",
+                label = "Create",
 
-                selected=currentRoute=="Create",
+                selected = currentRoute == "Create",
 
-                iconOutlined=Icons.Outlined.Add,
+                iconOutlined = Icons.Outlined.Add,
 
-                iconFilled=Icons.Filled.Add,
+                iconFilled = Icons.Filled.Add,
 
-                onClick={
+                onClick = {
+
 
                     onRouteSelected("Create")
 
+
                 }
 
             )
@@ -565,27 +898,34 @@ fun BottomNavigationBar(
 
 
 
+
+
+
             NavItem(
 
-                modifier=Modifier.weight(1f),
+                modifier = Modifier.weight(1f),
 
-                label="Notifications",
+                label = "Notifications",
 
-                selected=currentRoute=="Notifications",
+                selected = currentRoute == "Notifications",
 
-                iconOutlined=Icons.Outlined.Notifications,
+                iconOutlined = Icons.Outlined.Notifications,
 
-                iconFilled=Icons.Filled.Notifications,
+                iconFilled = Icons.Filled.Notifications,
 
-                badgeCount=3,
+                badgeCount = 3,
 
-                onClick={
+                onClick = {
+
 
                     onRouteSelected("Notifications")
 
+
                 }
 
             )
+
+
 
 
 
@@ -593,29 +933,34 @@ fun BottomNavigationBar(
 
             NavItem(
 
-                modifier=Modifier.weight(1f),
+                modifier = Modifier.weight(1f),
 
-                label="Profile",
+                label = "Profile",
 
-                selected=currentRoute=="Profile",
+                selected = currentRoute == "Profile",
 
-                iconOutlined=Icons.Outlined.Person,
+                iconOutlined = Icons.Outlined.Person,
 
-                iconFilled=Icons.Filled.Person,
+                iconFilled = Icons.Filled.Person,
 
-                onClick={
+                onClick = {
+
 
                     onRouteSelected("Profile")
+
 
                 }
 
             )
+
 
 
         }
 
 
+
     }
+
 
 
 }
@@ -631,7 +976,7 @@ fun BottomNavigationBar(
 @Composable
 fun NavItem(
 
-    modifier:Modifier=Modifier,
+    modifier: Modifier = Modifier,
 
     label:String,
 
@@ -641,7 +986,7 @@ fun NavItem(
 
     iconFilled:ImageVector,
 
-    badgeCount:Int=0,
+    badgeCount:Int = 0,
 
     onClick:()->Unit
 
@@ -649,7 +994,11 @@ fun NavItem(
 
 
 
+
+
     val animatedContentColor by animateColorAsState(
+
+
 
         targetValue = if(selected)
 
@@ -660,11 +1009,17 @@ fun NavItem(
             Color(0xFF8A95B5),
 
 
-        animationSpec=tween(250),
 
-        label="Color"
+        animationSpec = tween(250),
+
+        label = "Color"
+
+
 
     )
+
+
+
 
 
 
@@ -688,7 +1043,11 @@ fun NavItem(
 
             ){
 
+
+
                 onClick()
+
+
 
             },
 
@@ -700,51 +1059,65 @@ fun NavItem(
 
 
 
+
+
         BadgedBox(
 
-            badge={
+            badge = {
 
 
-                if(badgeCount>0){
+
+                if(badgeCount > 0){
 
 
-                    Badge{
+
+                    Badge {
+
 
 
                         Text(
 
-                            text=badgeCount.toString(),
+                            text = badgeCount.toString(),
 
-                            fontSize=AppTypography.NotificationBadgeTextSize
+                            fontSize = AppTypography.NotificationBadgeTextSize
 
                         )
+
 
 
                     }
 
 
+
                 }
 
 
+
             }
+
+
 
         ){
 
 
 
+
+
             Crossfade(
 
-                targetState=selected,
+                targetState = selected,
 
-                animationSpec=tween(150),
+                animationSpec = tween(150),
 
-                label="Icon"
+                label = "Icon"
 
             ){
 
 
 
                 Icon(
+
+
 
                     imageVector = if(it)
 
@@ -755,23 +1128,35 @@ fun NavItem(
                         iconOutlined,
 
 
-                    contentDescription=label,
 
-                    tint=animatedContentColor,
+                    contentDescription = label,
 
-                    modifier=Modifier.size(
+
+
+                    tint = animatedContentColor,
+
+
+
+                    modifier = Modifier.size(
 
                         AppDimensions.BottomNavigationIconSize
 
                     )
 
+
+
                 )
+
 
 
             }
 
 
+
         }
+
+
+
 
 
 
@@ -791,20 +1176,34 @@ fun NavItem(
 
 
 
+
+
         Text(
 
-            text=label,
 
-            color=animatedContentColor,
 
-            fontSize=AppTypography.BottomNavigationLabelSize,
+            text = label,
 
-            fontWeight=FontWeight.Medium
+
+
+            color = animatedContentColor,
+
+
+
+            fontSize = AppTypography.BottomNavigationLabelSize,
+
+
+
+            fontWeight = FontWeight.Medium
+
+
 
         )
 
 
+
     }
+
 
 
 }
@@ -831,13 +1230,17 @@ fun NavItem(
 fun MainScreenPreview(){
 
 
+
     NavHighTheme{
+
 
 
         MainScreen()
 
 
+
     }
+
 
 
 }

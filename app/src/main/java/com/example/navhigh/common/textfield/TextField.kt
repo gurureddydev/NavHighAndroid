@@ -1,15 +1,21 @@
 package com.example.navhigh.common.textfield
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -22,6 +28,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.navhigh.R
@@ -31,15 +38,9 @@ import com.example.navhigh.ui.theme.TextFieldBorder
 import com.example.navhigh.ui.theme.TextFieldHint
 import com.example.navhigh.ui.theme.TextFieldIcon
 import com.example.navhigh.ui.theme.TextFieldText
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 
-import androidx.compose.ui.tooling.preview.Preview
+// ---------------- COMMON TEXT FIELD ----------------
 
 @Composable
 fun CommonTextField(
@@ -66,24 +67,30 @@ fun CommonTextField(
 
     }
 
+
     OutlinedTextField(
 
         value = value,
 
         onValueChange = onValueChange,
 
+
         modifier = modifier
             .fillMaxWidth(),
+
 
         textStyle = TextStyle(
             fontSize = 14.sp
         ),
 
+
         singleLine = true,
+
 
         shape = RoundedCornerShape(
             AppDimensions.TextFieldRadius
         ),
+
 
         label = {
 
@@ -94,21 +101,29 @@ fun CommonTextField(
 
         },
 
+
         trailingIcon = {
+
 
             when {
 
+
+                // PASSWORD EYE ICON
+
                 isPassword -> {
+
 
                     IconButton(
 
                         onClick = {
 
-                            passwordVisible = !passwordVisible
+                            passwordVisible =
+                                !passwordVisible
 
                         }
 
                     ) {
+
 
                         Icon(
 
@@ -116,84 +131,173 @@ fun CommonTextField(
 
                                 id =
                                     if (passwordVisible)
+
                                         R.drawable.eye_open
+
                                     else
+
                                         R.drawable.eye_close
 
                             ),
 
-                            contentDescription = "Password Visibility",
+
+                            contentDescription =
+                                "Password Visibility",
+
 
                             tint = TextFieldIcon,
 
-                            modifier = Modifier.size(22.dp)
+
+                            modifier =
+                                Modifier.size(22.dp)
 
                         )
 
                     }
 
+
                 }
+
+
+
+                // USERNAME GREEN TICK
 
                 showSuccessIcon -> {
 
+
                     Icon(
 
-                        imageVector = Icons.Default.CheckCircle,
+                        imageVector =
+                            Icons.Default.CheckCircle,
 
-                        contentDescription = "Username Available",
 
-                        tint = Color(0xFF00E676),
+                        contentDescription =
+                            "Username Available",
 
-                        modifier = Modifier.size(22.dp)
+
+                        tint =
+                            Color(0xFF00E676),
+
+
+                        modifier =
+                            Modifier.size(22.dp)
 
                     )
 
+
                 }
+
 
             }
 
         },
 
+
         visualTransformation =
+
 
             if (isPassword && !passwordVisible)
 
+
                 PasswordVisualTransformation()
+
 
             else
 
+
                 VisualTransformation.None,
+
+
 
         isError = isError,
 
+
         colors = OutlinedTextFieldDefaults.colors(
 
-            focusedContainerColor = Color.Transparent,
 
-            unfocusedContainerColor = Color.Transparent,
+            focusedContainerColor =
+                Color.Transparent,
+
+
+            unfocusedContainerColor =
+                Color.Transparent,
+
 
             focusedBorderColor =
-                if (isError) ErrorNeonRose else TextFieldBorder,
+
+                if (isError)
+
+                    ErrorNeonRose
+
+                else
+
+                    TextFieldBorder,
+
+
 
             unfocusedBorderColor =
-                if (isError) ErrorNeonRose else TextFieldBorder,
 
-            focusedTextColor = TextFieldText,
+                if (isError)
 
-            unfocusedTextColor = TextFieldText,
+                    ErrorNeonRose
+
+                else
+
+                    TextFieldBorder,
+
+
+
+            focusedTextColor =
+                TextFieldText,
+
+
+            unfocusedTextColor =
+                TextFieldText,
+
 
             focusedLabelColor =
-                if (isError) ErrorNeonRose else TextFieldBorder,
+
+                if (isError)
+
+                    ErrorNeonRose
+
+                else
+
+                    TextFieldBorder,
+
+
 
             unfocusedLabelColor =
-                if (isError) ErrorNeonRose else TextFieldHint,
 
-            focusedTrailingIconColor = TextFieldIcon,
+                if (isError)
 
-            unfocusedTrailingIconColor = TextFieldIcon,
+                    ErrorNeonRose
+
+                else
+
+                    TextFieldHint,
+
+
+
+            focusedTrailingIconColor =
+                TextFieldIcon,
+
+
+            unfocusedTrailingIconColor =
+                TextFieldIcon,
+
+
 
             cursorColor =
-                if (isError) ErrorNeonRose else TextFieldBorder
+
+                if (isError)
+
+                    ErrorNeonRose
+
+                else
+
+                    TextFieldBorder
+
 
         )
 
@@ -234,6 +338,7 @@ fun FullNameTextField(
 }
 
 
+
 // ---------------- USERNAME ----------------
 
 @Composable
@@ -272,6 +377,45 @@ fun UsernameTextField(
 }
 
 
+
+// ---------------- USERNAME OR EMAIL ----------------
+// No green tick icon
+
+@Composable
+fun UsernameOrEmailTextField(
+
+    value: String,
+
+    onValueChange: (String) -> Unit,
+
+    modifier: Modifier = Modifier,
+
+    isError: Boolean = false
+
+) {
+
+    CommonTextField(
+
+        value = value,
+
+        onValueChange = onValueChange,
+
+        label = "Username or Email",
+
+        modifier = modifier.height(
+            AppDimensions.TextFieldHeight
+        ),
+
+        isError = isError,
+
+        showSuccessIcon = false
+
+    )
+
+}
+
+
+
 // ---------------- EMAIL ----------------
 
 @Composable
@@ -304,6 +448,7 @@ fun EmailTextField(
     )
 
 }
+
 
 
 // ---------------- PASSWORD ----------------
@@ -350,75 +495,173 @@ fun PasswordTextField(
 @Composable
 fun TextFieldPreview() {
 
+
     var fullName by remember {
+
         mutableStateOf("")
+
     }
+
 
     var username by remember {
+
         mutableStateOf("t.poornaprakash")
+
     }
+
+
+    var usernameOrEmail by remember {
+
+        mutableStateOf("")
+
+    }
+
 
     var email by remember {
+
         mutableStateOf("")
+
     }
 
+
     var password by remember {
+
         mutableStateOf("")
+
     }
+
+
 
     MaterialTheme {
 
+
         Surface(
+
             modifier = Modifier.fillMaxSize(),
+
             color = Color(0xFF020613)
+
         ) {
 
+
             Column(
+
                 modifier = Modifier
+
                     .fillMaxSize()
+
                     .padding(16.dp)
+
             ) {
 
+
+
                 FullNameTextField(
+
                     value = fullName,
+
                     onValueChange = {
+
                         fullName = it
+
                     }
+
                 )
 
+
+
                 Spacer(
+
                     modifier = Modifier.height(16.dp)
+
                 )
+
+
+
 
                 UsernameTextField(
+
                     value = username,
+
                     onValueChange = {
+
                         username = it
+
                     },
+
                     isAvailable = true
+
                 )
 
+
+
                 Spacer(
+
                     modifier = Modifier.height(16.dp)
+
                 )
+
+
+
+
+                UsernameOrEmailTextField(
+
+                    value = usernameOrEmail,
+
+                    onValueChange = {
+
+                        usernameOrEmail = it
+
+                    }
+
+                )
+
+
+
+                Spacer(
+
+                    modifier = Modifier.height(16.dp)
+
+                )
+
+
+
 
                 EmailTextField(
+
                     value = email,
+
                     onValueChange = {
+
                         email = it
+
                     }
+
                 )
+
+
 
                 Spacer(
+
                     modifier = Modifier.height(16.dp)
+
                 )
 
+
+
+
                 PasswordTextField(
+
                     value = password,
+
                     onValueChange = {
+
                         password = it
+
                     }
+
                 )
+
 
             }
 

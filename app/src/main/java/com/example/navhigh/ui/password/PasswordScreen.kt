@@ -17,21 +17,22 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.tooling.preview.Preview
-
 
 import com.example.navhigh.common.button.Button
 import com.example.navhigh.common.components.AlreadyHaveAccount
@@ -41,12 +42,11 @@ import com.example.navhigh.common.components.TitlePart
 import com.example.navhigh.common.dialoguebox.AlreadyHaveAccountDialog
 import com.example.navhigh.common.textfield.PasswordTextField
 
-
 import com.example.navhigh.ui.theme.AppDimensions
+import com.example.navhigh.ui.theme.AppTypography
 import com.example.navhigh.ui.theme.Background
-import com.example.navhigh.ui.theme.BlueEnd
-import com.example.navhigh.ui.theme.BlueStart
 import com.example.navhigh.ui.theme.BorderBlue
+import com.example.navhigh.ui.theme.BlueEnd
 import com.example.navhigh.ui.theme.ForgotPasswordBlue
 import com.example.navhigh.ui.theme.NavHighTheme
 import com.example.navhigh.ui.theme.PasswordDescriptionColor
@@ -85,19 +85,6 @@ fun PasswordScreen(
         mutableStateOf(false)
 
     }
-
-
-    val gradient = Brush.horizontalGradient(
-
-        colors = listOf(
-
-            BlueStart,
-
-            BlueEnd
-
-        )
-
-    )
     BoxWithConstraints(
 
         modifier = Modifier
@@ -109,13 +96,21 @@ fun PasswordScreen(
     ) {
 
 
-        val contentWidth = if (maxWidth > AppDimensions.TabletBreakpoint) {
+        val contentWidth = if (
+
+            maxWidth > AppDimensions.TabletBreakpoint
+
+        ) {
+
 
             AppDimensions.PasswordTabletContentMaxWidth
 
+
         } else {
 
+
             AppDimensions.PasswordContentMaxWidth
+
 
         }
 
@@ -181,8 +176,6 @@ fun PasswordScreen(
 
 
 
-            // Reusable Screen Title
-
             ScreenTitle(
 
                 lines = listOf(
@@ -230,12 +223,11 @@ fun PasswordScreen(
 
                 color = PasswordDescriptionColor,
 
-                fontSize = com.example.navhigh.ui.theme.AppTypography.Description,
+                fontSize = AppTypography.Description,
 
-                lineHeight = com.example.navhigh.ui.theme.AppTypography.EmailDescriptionLineHeight
+                lineHeight = AppTypography.EmailDescriptionLineHeight
 
             )
-
 
 
 
@@ -260,12 +252,9 @@ fun PasswordScreen(
 
                     password = it
 
-                },
-
-                //modifier = Modifier.fillMaxWidth()
+                }
 
             )
-
 
 
 
@@ -304,7 +293,6 @@ fun PasswordScreen(
 
 
 
-
                 Spacer(
 
                     modifier = Modifier.width(
@@ -317,17 +305,15 @@ fun PasswordScreen(
 
 
 
-
                 Text(
 
                     text = "Remember login info.",
 
                     color = White,
 
-                    fontSize = com.example.navhigh.ui.theme.AppTypography.RememberText
+                    fontSize = AppTypography.RememberText
 
                 )
-
 
 
 
@@ -343,19 +329,20 @@ fun PasswordScreen(
 
 
 
-
                 Text(
 
                     text = "Learn more",
 
                     color = BlueEnd,
 
-                    fontSize = com.example.navhigh.ui.theme.AppTypography.RememberText
+                    fontSize = AppTypography.RememberText
 
                 )
 
 
             }
+
+
 
             Spacer(
 
@@ -366,8 +353,6 @@ fun PasswordScreen(
                 )
 
             )
-
-
 
 
 
@@ -387,15 +372,13 @@ fun PasswordScreen(
 
 
 
-
+            // Push AlreadyHaveAccount to bottom
 
             Spacer(
 
                 modifier = Modifier.weight(1f)
 
             )
-
-
 
 
 
@@ -415,8 +398,6 @@ fun PasswordScreen(
 
 
 
-
-
             Spacer(
 
                 modifier = Modifier.height(
@@ -432,16 +413,10 @@ fun PasswordScreen(
 
 
     }
-
-
-
-
-
     if (showLoginDialog) {
 
 
         AlreadyHaveAccountDialog(
-
 
             onDismiss = {
 
@@ -475,6 +450,9 @@ fun PasswordScreen(
 
 
 
+
+
+// ---------------- CUSTOM CHECKBOX ----------------
 
 
 @Composable
@@ -523,7 +501,9 @@ fun CustomCheckbox(
 
             .clickable {
 
+
                 onCheckedChange(!checked)
+
 
             },
 
@@ -541,7 +521,7 @@ fun CustomCheckbox(
 
                 imageVector = Icons.Default.Check,
 
-                contentDescription = null,
+                contentDescription = "Checked",
 
                 tint = BorderBlue,
 
@@ -561,10 +541,7 @@ fun CustomCheckbox(
 
 
 }
-
-
-
-
+// ---------------- PHONE PREVIEW ----------------
 
 
 @Preview(
@@ -595,6 +572,8 @@ fun PasswordPhonePreview() {
 
 
 
+
+// ---------------- TABLET PREVIEW ----------------
 
 
 @Preview(
