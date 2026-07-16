@@ -13,9 +13,20 @@
         </DropdownSelection>
         <DialogSelection />
       </SelectionState>
-      <SelectionState runConfigName="FullNameScreenPreview">
+      <SelectionState runConfigName="FullNameScreenPhonePreview">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-07-15T08:52:23.619085100Z">
+        <DropdownSelection timestamp="2026-07-15T08:48:55.859951400Z">
+          <Target type="DEFAULT_BOOT">
+            <handle>
+              <DeviceId pluginId="PhysicalDevice" identifier="serial=763a1c6a" />
+            </handle>
+          </Target>
+        </DropdownSelection>
+        <DialogSelection />
+      </SelectionState>
+      <SelectionState runConfigName="PasswordPhonePreview">
+        <option name="selectionMode" value="DROPDOWN" />
+        <DropdownSelection timestamp="2026-07-15T08:48:55.859951400Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="PhysicalDevice" identifier="serial=763a1c6a" />
@@ -26,7 +37,7 @@
       </SelectionState>
       <SelectionState runConfigName="BirthdayScreenPreview">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-07-15T08:51:48.601150700Z">
+        <DropdownSelection timestamp="2026-07-15T08:48:55.859951400Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="PhysicalDevice" identifier="serial=763a1c6a" />
@@ -35,55 +46,18 @@
         </DropdownSelection>
         <DialogSelection />
       </SelectionState>
-      <SelectionState runConfigName="FullNameScreenTabletPreview">
-        <option name="selectionMode" value="DIALOG" />
-        <DropdownSelection timestamp="2026-07-15T10:26:32.471027700Z">
+      <SelectionState runConfigName="BirthdayScreenPreview (1)">
+        <option name="selectionMode" value="DROPDOWN" />
+        <DropdownSelection timestamp="2026-07-15T08:48:55.859951400Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="PhysicalDevice" identifier="serial=763a1c6a" />
             </handle>
           </Target>
         </DropdownSelection>
-        <DialogSelection>
-          <targets>
-            <Target type="DEFAULT_BOOT">
-              <handle>
-                <DeviceId pluginId="PhysicalDevice" identifier="serial=42a6f6b2" />
-              </handle>
-            </Target>
-            <Target type="DEFAULT_BOOT">
-              <handle>
-                <DeviceId pluginId="PhysicalDevice" identifier="serial=763a1c6a" />
-              </handle>
-            </Target>
-          </targets>
-        </DialogSelection>
+        <DialogSelection />
       </SelectionState>
-      <SelectionState runConfigName="UserNameScreenTabletPreview">
-        <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-07-15T11:19:24.861705800Z">
-          <Target type="DEFAULT_BOOT">
-            <handle>
-              <DeviceId pluginId="PhysicalDevice" identifier="serial=42a6f6b2" />
-            </handle>
-          </Target>
-        </DropdownSelection>
-        <DialogSelection>
-          <targets>
-            <Target type="DEFAULT_BOOT">
-              <handle>
-                <DeviceId pluginId="PhysicalDevice" identifier="serial=42a6f6b2" />
-              </handle>
-            </Target>
-            <Target type="DEFAULT_BOOT">
-              <handle>
-                <DeviceId pluginId="PhysicalDevice" identifier="serial=763a1c6a" />
-              </handle>
-            </Target>
-          </targets>
-        </DialogSelection>
-      </SelectionState>
-      <SelectionState runConfigName="PasswordTabletPreview">
+      <SelectionState runConfigName="BirthdayScreenPreview (2)">
         <option name="selectionMode" value="DROPDOWN" />
         <DropdownSelection timestamp="2026-07-15T08:48:55.859951400Z">
           <Target type="DEFAULT_BOOT">

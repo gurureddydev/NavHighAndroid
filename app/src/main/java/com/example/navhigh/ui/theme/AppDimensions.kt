@@ -400,10 +400,10 @@ object AppDimensions {
 
     val TextFieldToRemember = 14.dp
 
-    val RememberToButton = 32.dp
+    val RememberToButton = 25.dp
 
 
-    val BottomSpace = 35.dp
+    val BottomSpace = 20.dp
 
     val RememberGap = 8.dp
 

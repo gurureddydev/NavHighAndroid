@@ -1,33 +1,27 @@
 package com.example.navhigh.ui.name
 
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 
-import com.example.navhigh.R
+import com.example.navhigh.common.button.Button
 import com.example.navhigh.common.components.AlreadyHaveAccount
 import com.example.navhigh.common.components.BackArrow
 import com.example.navhigh.common.components.ScreenTitle
 import com.example.navhigh.common.components.TitlePart
 import com.example.navhigh.common.textfield.UsernameTextField
-import com.example.navhigh.common.button.Button
-
 import com.example.navhigh.ui.theme.AppDimensions
 import com.example.navhigh.ui.theme.LoginBackground
 import com.example.navhigh.ui.theme.NavHighTheme
-
 
 
 @Composable
@@ -46,27 +40,25 @@ fun UserNameScreen(
 ) {
 
 
-
+    // Initial username without @
     val generatedUsername = remember(fullName) {
 
-        "@" + fullName
-
+        fullName
             .lowercase()
-
             .replace(" ", "")
 
     }
 
 
-
+    // TextField value
     var username by remember {
 
-        mutableStateOf(generatedUsername)
+        mutableStateOf("@$generatedUsername")
 
     }
 
 
-
+    // Controls blue tick
     var showTick by remember {
 
         mutableStateOf(true)
@@ -74,7 +66,15 @@ fun UserNameScreen(
     }
 
 
+    // Detect editing mode
+    var isEditing by remember {
 
+        mutableStateOf(false)
+
+    }
+
+
+    // Button loading
     var isLoading by remember {
 
         mutableStateOf(false)
@@ -83,14 +83,12 @@ fun UserNameScreen(
 
 
 
-
     LaunchedEffect(isLoading) {
 
+        if (isLoading) {
 
-        if(isLoading){
 
-
-            delay(5 * 60 * 1000L)
+            delay(5000L)
 
 
             isLoading = false
@@ -99,13 +97,12 @@ fun UserNameScreen(
             showTick = true
 
 
+            onNextClick()
+
+
         }
 
-
     }
-
-
-
 
 
 
@@ -113,23 +110,13 @@ fun UserNameScreen(
 
 
     val isTablet = configuration.screenWidthDp >= 600
-
-
-
-
-
     Box(
 
         modifier = Modifier
-
             .fillMaxSize()
-
             .background(LoginBackground)
 
-    ){
-
-
-
+    ) {
 
 
         Column(
@@ -143,16 +130,14 @@ fun UserNameScreen(
                 .fillMaxWidth()
 
                 .widthIn(
-
                     max = AppDimensions.EmailContentMaxWidth
-
                 )
 
                 .padding(
 
                     horizontal = AppDimensions.EmailScreenHorizontalPadding,
 
-                    vertical = if(isTablet)
+                    vertical = if (isTablet)
 
                         60.dp
 
@@ -162,12 +147,9 @@ fun UserNameScreen(
 
                 ),
 
-
             horizontalAlignment = Alignment.Start
 
-        ){
-
-
+        ) {
 
 
 
@@ -176,8 +158,6 @@ fun UserNameScreen(
                 onClick = onBackClick
 
             )
-
-
 
 
 
@@ -190,10 +170,6 @@ fun UserNameScreen(
                 )
 
             )
-
-
-
-
 
 
 
@@ -217,10 +193,6 @@ fun UserNameScreen(
 
 
 
-
-
-
-
             Spacer(
 
                 modifier = Modifier.height(16.dp)
@@ -229,27 +201,15 @@ fun UserNameScreen(
 
 
 
-
-
-
-
             Text(
 
                 text = "Add a username or use our suggestion.\nYou can change this at any time.",
 
-
                 color = Color.White.copy(
-
                     alpha = 0.70f
-
                 )
 
             )
-
-
-
-
-
 
 
 
@@ -261,89 +221,44 @@ fun UserNameScreen(
 
 
 
+            UsernameTextField(
+
+                value = username,
 
 
+                onValueChange = {
 
 
+                    username = it
+
+                    isEditing = true
+
+                    showTick = false
 
 
-            Box(
-
-                modifier = Modifier.fillMaxWidth()
-
-            ){
+                },
 
 
+                isAvailable = showTick,
 
 
-
-                UsernameTextField(
-
-                    value = username,
+                onFocusChanged = { focused ->
 
 
-                    onValueChange = {
+                    if (focused && !isEditing) {
 
 
-                        username = it
-
+                        username = username.removePrefix("@")
 
                         showTick = false
 
 
-                    },
-
-
-                    isAvailable = showTick
-
-                )
-
-
-
-
-
-                if(showTick){
-
-
-
-                    Icon(
-
-                        painter = painterResource(
-
-                            id = R.drawable.tick_icon
-
-                        ),
-
-
-                        contentDescription = "Username available",
-
-
-                        modifier = Modifier
-
-                            .align(Alignment.CenterEnd)
-
-                            .padding(end = 16.dp)
-
-                            .size(28.dp)
-
-                    )
+                    }
 
 
                 }
 
-
-
-            }
-
-
-
-
-
-
-
-
-
-
+            )
             Spacer(
 
                 modifier = Modifier.height(
@@ -356,15 +271,9 @@ fun UserNameScreen(
 
 
 
-
-
-
-
-
-
             Button(
 
-                text = if(isLoading)
+                text = if (isLoading)
 
                     ""
 
@@ -373,54 +282,36 @@ fun UserNameScreen(
                     "Next",
 
 
+                isLoading = isLoading,
+
 
                 onClick = {
 
 
-                    if(username.trim().length > 1){
+                    val finalUsername =
+
+                        if (username.startsWith("@"))
+
+                            username
+
+                        else
+
+                            "@$username"
 
 
-                        showTick = true
+
+                    username = finalUsername
 
 
-                        isLoading = true
+                    showTick = true
 
 
-                        onNextClick()
-
-
-                    }
+                    isLoading = true
 
 
                 }
 
             )
-
-
-
-            if(isLoading){
-
-
-
-                CircularProgressIndicator(
-
-                    modifier = Modifier
-
-                        .padding(top = 12.dp)
-
-                        .size(24.dp),
-
-
-                    color = Color.White
-
-                )
-
-
-            }
-
-
-
-
 
 
 
@@ -431,14 +322,7 @@ fun UserNameScreen(
             )
 
 
-
-
         }
-
-
-
-
-
 
 
 
@@ -455,6 +339,7 @@ fun UserNameScreen(
 
                 .padding(
 
+
                     horizontal = AppDimensions.EmailScreenHorizontalPadding,
 
                     vertical = 24.dp
@@ -464,7 +349,7 @@ fun UserNameScreen(
 
             horizontalAlignment = Alignment.CenterHorizontally
 
-        ){
+        ) {
 
 
 
@@ -477,24 +362,13 @@ fun UserNameScreen(
             )
 
 
-
         }
-
-
-
 
 
     }
 
 
-
-
-
 }
-
-
-
-
 
 
 
@@ -513,6 +387,46 @@ fun UserNamePreview(){
 
 
     NavHighTheme{
+
+
+        UserNameScreen(
+
+            fullName = "Poorna Prakash",
+
+            onBackClick = {},
+
+            onNextClick = {},
+
+            onLoginClick = {},
+
+            onContinueClick = {}
+
+        )
+
+
+    }
+
+
+}
+@Preview(
+
+    showBackground = true,
+
+    showSystemUi = true,
+
+    name = "Tablet Preview",
+
+    device = "spec:width=800dp,height=1280dp,dpi=240"
+
+)
+
+@Composable
+fun usernameScreenTabletPreview(){
+
+
+
+    NavHighTheme {
+
 
 
         UserNameScreen(

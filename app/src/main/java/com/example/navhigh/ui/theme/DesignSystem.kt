@@ -26,7 +26,7 @@ object AppTypography {
 
     // ---------------- EMAIL SCREEN TEXT ----------------
 
-    val EmailTitleSize = 30.sp
+    val EmailTitleSize = 25.sp
 
     val EmailDescriptionSize = 14.sp
 

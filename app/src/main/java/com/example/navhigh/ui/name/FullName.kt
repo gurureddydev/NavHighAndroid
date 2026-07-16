@@ -44,7 +44,6 @@ fun FullNameScreen(
     }
 
 
-
     val configuration = LocalConfiguration.current
 
     val isTablet = configuration.screenWidthDp >= 600
@@ -54,13 +53,10 @@ fun FullNameScreen(
     Box(
 
         modifier = Modifier
-
             .fillMaxSize()
-
             .background(LoginBackground)
 
     ) {
-
 
 
         Column(
@@ -105,7 +101,6 @@ fun FullNameScreen(
 
                 )
 
-
                 .widthIn(
 
                     max = if (isTablet)
@@ -122,15 +117,11 @@ fun FullNameScreen(
             horizontalAlignment = Alignment.Start
 
         ) {
-
-
-
             BackArrow(
 
                 onClick = onBackClick
 
             )
-
 
 
 
@@ -143,8 +134,6 @@ fun FullNameScreen(
                 )
 
             )
-
-
 
 
 
@@ -168,8 +157,6 @@ fun FullNameScreen(
 
 
 
-
-
             Spacer(
 
                 modifier = Modifier.height(
@@ -188,8 +175,6 @@ fun FullNameScreen(
 
 
 
-
-
             Text(
 
                 text = "Enter your full name so people can\nfind and recognize you.",
@@ -202,8 +187,6 @@ fun FullNameScreen(
                 )
 
             )
-
-
 
 
 
@@ -227,7 +210,6 @@ fun FullNameScreen(
 
 
 
-
             FullNameTextField(
 
                 value = fullName,
@@ -240,7 +222,6 @@ fun FullNameScreen(
                 }
 
             )
-
 
 
 
@@ -264,9 +245,6 @@ fun FullNameScreen(
 
 
 
-
-
-
             Button(
 
                 text = "Next",
@@ -275,7 +253,7 @@ fun FullNameScreen(
                 onClick = {
 
 
-                    if(fullName.trim().isNotEmpty()){
+                    if (fullName.trim().isNotEmpty()) {
 
 
                         onNextClick(
@@ -283,7 +261,6 @@ fun FullNameScreen(
                             fullName.trim()
 
                         )
-
 
                     }
 
@@ -295,8 +272,6 @@ fun FullNameScreen(
 
 
 
-
-
             Spacer(
 
                 modifier = Modifier.weight(1f)
@@ -304,61 +279,71 @@ fun FullNameScreen(
             )
 
 
-
         }
 
 
 
+        // Bottom Already Have Account
 
-
-        Column(
+        Box(
 
             modifier = Modifier
 
                 .align(Alignment.BottomCenter)
 
-                .navigationBarsPadding()
-
                 .fillMaxWidth()
 
-                .padding(
-
-                    bottom = 24.dp
-
-                ),
-
-
-            horizontalAlignment = Alignment.CenterHorizontally
+                .navigationBarsPadding()
 
         ) {
 
 
+            Column(
 
-            AlreadyHaveAccount(
+                modifier = Modifier
 
-                onLogin = onLoginClick,
+                    .fillMaxWidth()
 
-                onContinue = onContinueClick
+                    .padding(
 
-            )
+                        start = AppDimensions.EmailScreenHorizontalPadding,
+
+                        end = AppDimensions.EmailScreenHorizontalPadding,
+
+
+
+                    ),
+
+
+                horizontalAlignment = Alignment.CenterHorizontally
+
+            ) {
+
+
+                AlreadyHaveAccount(
+
+                    onLogin = {
+
+                        onLoginClick()
+
+                    },
+
+
+                    onContinue = onContinueClick
+
+                )
+
+
+            }
 
 
         }
 
 
-
     }
 
-
 }
-
-
-
-
-
-
-
-
+// ---------------- PHONE PREVIEW ----------------
 
 @Preview(
 
@@ -371,12 +356,10 @@ fun FullNameScreen(
 )
 
 @Composable
-fun FullNameScreenPhonePreview(){
-
+fun FullNameScreenPhonePreview() {
 
 
     NavHighTheme {
-
 
 
         FullNameScreen(
@@ -394,15 +377,13 @@ fun FullNameScreenPhonePreview(){
 
     }
 
-
 }
 
 
 
 
 
-
-
+// ---------------- TABLET PREVIEW ----------------
 
 
 @Preview(
@@ -418,12 +399,10 @@ fun FullNameScreenPhonePreview(){
 )
 
 @Composable
-fun FullNameScreenTabletPreview(){
-
+fun FullNameScreenTabletPreview() {
 
 
     NavHighTheme {
-
 
 
         FullNameScreen(
@@ -440,6 +419,5 @@ fun FullNameScreenTabletPreview(){
 
 
     }
-
 
 }

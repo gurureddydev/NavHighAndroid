@@ -1,5 +1,7 @@
 package com.example.navhigh.common.textfield
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -7,9 +9,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
+
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -17,11 +19,14 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -31,6 +36,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
 import com.example.navhigh.R
 import com.example.navhigh.ui.theme.AppDimensions
 import com.example.navhigh.ui.theme.ErrorNeonRose
@@ -57,9 +63,12 @@ fun CommonTextField(
 
     isError: Boolean = false,
 
-    showSuccessIcon: Boolean = false
+    showSuccessIcon: Boolean = false,
+
+    onFocusChanged: ((Boolean) -> Unit)? = null
 
 ) {
+
 
     var passwordVisible by remember {
 
@@ -68,19 +77,42 @@ fun CommonTextField(
     }
 
 
+    val interactionSource = remember {
+
+        MutableInteractionSource()
+
+    }
+
+
+    val isFocused by interactionSource.collectIsFocusedAsState()
+
+
+    LaunchedEffect(isFocused) {
+
+        onFocusChanged?.invoke(isFocused)
+
+    }
+
+
+
     OutlinedTextField(
 
         value = value,
 
+
         onValueChange = onValueChange,
 
 
-        modifier = modifier
-            .fillMaxWidth(),
+        interactionSource = interactionSource,
+
+
+        modifier = modifier.fillMaxWidth(),
 
 
         textStyle = TextStyle(
+
             fontSize = 14.sp
+
         ),
 
 
@@ -88,18 +120,27 @@ fun CommonTextField(
 
 
         shape = RoundedCornerShape(
+
             AppDimensions.TextFieldRadius
+
         ),
+
 
 
         label = {
 
+
             Text(
+
                 text = label,
+
                 fontSize = 12.sp
+
             )
 
+
         },
+
 
 
         trailingIcon = {
@@ -108,8 +149,6 @@ fun CommonTextField(
             when {
 
 
-                // PASSWORD EYE ICON
-
                 isPassword -> {
 
 
@@ -117,8 +156,7 @@ fun CommonTextField(
 
                         onClick = {
 
-                            passwordVisible =
-                                !passwordVisible
+                            passwordVisible = !passwordVisible
 
                         }
 
@@ -129,27 +167,24 @@ fun CommonTextField(
 
                             painter = painterResource(
 
-                                id =
-                                    if (passwordVisible)
+                                id = if (passwordVisible)
 
-                                        R.drawable.eye_open
+                                    R.drawable.eye_open
 
-                                    else
+                                else
 
-                                        R.drawable.eye_close
+                                    R.drawable.eye_close
 
                             ),
 
 
-                            contentDescription =
-                                "Password Visibility",
+                            contentDescription = "Password Visibility",
 
 
                             tint = TextFieldIcon,
 
 
-                            modifier =
-                                Modifier.size(22.dp)
+                            modifier = Modifier.size(22.dp)
 
                         )
 
@@ -160,27 +195,25 @@ fun CommonTextField(
 
 
 
-                // USERNAME GREEN TICK
-
-                showSuccessIcon -> {
+                showSuccessIcon && !isFocused -> {
 
 
                     Icon(
 
-                        imageVector =
-                            Icons.Default.CheckCircle,
+                        painter = painterResource(
+
+                            id = R.drawable.tick_icon
+
+                        ),
 
 
-                        contentDescription =
-                            "Username Available",
+                        contentDescription = "Available",
 
 
-                        tint =
-                            Color(0xFF00E676),
+                        tint = Color.Unspecified,
 
 
-                        modifier =
-                            Modifier.size(22.dp)
+                        modifier = Modifier.size(22.dp)
 
                     )
 
@@ -190,7 +223,9 @@ fun CommonTextField(
 
             }
 
+
         },
+
 
 
         visualTransformation =
@@ -198,12 +233,9 @@ fun CommonTextField(
 
             if (isPassword && !passwordVisible)
 
-
                 PasswordVisualTransformation()
 
-
             else
-
 
                 VisualTransformation.None,
 
@@ -212,15 +244,22 @@ fun CommonTextField(
         isError = isError,
 
 
+
         colors = OutlinedTextFieldDefaults.colors(
 
 
-            focusedContainerColor =
-                Color.Transparent,
+
+            focusedContainerColor = Color.Transparent,
 
 
-            unfocusedContainerColor =
-                Color.Transparent,
+            unfocusedContainerColor = Color.Transparent,
+
+
+            disabledContainerColor = Color.Transparent,
+
+
+            errorContainerColor = Color.Transparent,
+
 
 
             focusedBorderColor =
@@ -247,12 +286,11 @@ fun CommonTextField(
 
 
 
-            focusedTextColor =
-                TextFieldText,
+            focusedTextColor = TextFieldText,
 
 
-            unfocusedTextColor =
-                TextFieldText,
+            unfocusedTextColor = TextFieldText,
+
 
 
             focusedLabelColor =
@@ -279,12 +317,10 @@ fun CommonTextField(
 
 
 
-            focusedTrailingIconColor =
-                TextFieldIcon,
+            focusedTrailingIconColor = Color.Unspecified,
 
 
-            unfocusedTrailingIconColor =
-                TextFieldIcon,
+            unfocusedTrailingIconColor = Color.Unspecified,
 
 
 
@@ -352,9 +388,12 @@ fun UsernameTextField(
 
     isError: Boolean = false,
 
-    isAvailable: Boolean = true
+    isAvailable: Boolean = true,
+
+    onFocusChanged: ((Boolean) -> Unit)? = null
 
 ) {
+
 
     CommonTextField(
 
@@ -370,7 +409,9 @@ fun UsernameTextField(
 
         isError = isError,
 
-        showSuccessIcon = isAvailable
+        showSuccessIcon = isAvailable,
+
+        onFocusChanged = onFocusChanged
 
     )
 
@@ -379,7 +420,6 @@ fun UsernameTextField(
 
 
 // ---------------- USERNAME OR EMAIL ----------------
-// No green tick icon
 
 @Composable
 fun UsernameOrEmailTextField(
@@ -393,6 +433,7 @@ fun UsernameOrEmailTextField(
     isError: Boolean = false
 
 ) {
+
 
     CommonTextField(
 
@@ -431,6 +472,7 @@ fun EmailTextField(
 
 ) {
 
+
     CommonTextField(
 
         value = value,
@@ -444,6 +486,52 @@ fun EmailTextField(
         ),
 
         isError = isError
+
+    )
+
+}
+
+
+
+// ---------------- DATE OF BIRTH ----------------
+
+/**
+ * age: the calculated age (years old) to show inside the label, e.g.
+ * "Date of birth (26 years old)". Defaults to 0 so existing call sites
+ * that don't pass it (e.g. previews) still compile, but real screens
+ * should always pass the age computed from the picked date.
+ */
+@Composable
+fun DateOfBirthTextField(
+
+    value: String,
+
+    onValueChange: (String) -> Unit,
+
+    modifier: Modifier = Modifier,
+
+    isError: Boolean = false,
+
+    age: Int = 0
+
+) {
+
+
+    CommonTextField(
+
+        value = value,
+
+        onValueChange = onValueChange,
+
+        label = "Date of birth ($age years old)",
+
+        modifier = modifier.height(
+            AppDimensions.TextFieldHeight
+        ),
+
+        isError = isError,
+
+        showSuccessIcon = false
 
     )
 
@@ -465,6 +553,7 @@ fun PasswordTextField(
     isError: Boolean = false
 
 ) {
+
 
     CommonTextField(
 
@@ -505,7 +594,7 @@ fun TextFieldPreview() {
 
     var username by remember {
 
-        mutableStateOf("t.poornaprakash")
+        mutableStateOf("@poornaprakash")
 
     }
 
@@ -518,6 +607,13 @@ fun TextFieldPreview() {
 
 
     var email by remember {
+
+        mutableStateOf("")
+
+    }
+
+
+    var dateOfBirth by remember {
 
         mutableStateOf("")
 
@@ -542,6 +638,7 @@ fun TextFieldPreview() {
             color = Color(0xFF020613)
 
         ) {
+
 
 
             Column(
@@ -578,7 +675,6 @@ fun TextFieldPreview() {
 
 
 
-
                 UsernameTextField(
 
                     value = username,
@@ -600,7 +696,6 @@ fun TextFieldPreview() {
                     modifier = Modifier.height(16.dp)
 
                 )
-
 
 
 
@@ -626,7 +721,6 @@ fun TextFieldPreview() {
 
 
 
-
                 EmailTextField(
 
                     value = email,
@@ -649,6 +743,29 @@ fun TextFieldPreview() {
 
 
 
+                DateOfBirthTextField(
+
+                    value = dateOfBirth,
+
+                    onValueChange = {
+
+                        dateOfBirth = it
+
+                    },
+
+                    age = 0
+
+                )
+
+
+
+                Spacer(
+
+                    modifier = Modifier.height(16.dp)
+
+                )
+
+
 
                 PasswordTextField(
 
@@ -661,7 +778,6 @@ fun TextFieldPreview() {
                     }
 
                 )
-
 
             }
 
