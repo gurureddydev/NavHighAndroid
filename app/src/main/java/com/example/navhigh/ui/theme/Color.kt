@@ -189,6 +189,12 @@ val CreateAccountColor = Color(0xFF008CFF)
 val LoginWhiteText = Color.White
 
 val ForgotPasswordBlue = Color(0xFF0090FF)
+val BirthdayBgBlack = Color(0xFF03070C)
+val BirthdayDialogBg = Color(0xFF020508)
+val BirthdayCyanAccent = Color(0xFF29C4F0)
+val BirthdayTextWhite = Color(0xFFF2F5F8)
+val BirthdayTextGrey = Color(0xFF8C97A3)
+val BirthdayFieldBorder = Color(0xFF1E3A5F)
 
 val ErrorNeonRose = Color(0xFFFF4D6D)
 
@@ -264,4 +270,35 @@ val BlueEnd = Color(0xFF19C6FF)
 
 val Transparent = Color.Transparent
 val PasswordDescriptionColor = Color(0xFFE2E8F0)
+val BirthdaySheetBg = Color(0xFF03070C)
+val BirthdaySheetTextWhite = Color(0xFFF4F4F4)
+val BirthdaySheetTextGrey = Color(0xFFB8C2CD)
+val BirthdaySheetCyanAccent = Color(0xFF29C4F0)
+val BirthdaySheetHandleColor = Color(0xFF65717F)
+
+val EmailArrowTint = Color.White
+val EmailTitleColor = Color.White
+val EmailDescriptionColor = Color.LightGray
+// Color.kt
+val FullNameDescriptionColor = Color.White
+// Color.kt
+val UserNameDescriptionColor = Color.White
+
+val OtpDescriptionColor = Color.LightGray
+val OtpEmailHighlightColor = Color(0xFF00C8FF)
+val OtpErrorColor = Color.Red
+val OtpTextWhite = Color.White
+
+val SplashLoadingTrack = Color(0xFF2B3147)
+val SplashLoadingProgress = Color(0xFF2C8DFF)
+val SplashLoadingTextColor = White.copy(alpha = 0.75f)
+val TermsAgreementTitleColor = Color.White
+
+val ContactsSyncBodyColor = Color(0xFF9CA3AF)
+val ContactsSyncIconColor = Color(0xFF3B82F6)
+val LearnMoreLinkColor = Color(0xFF3B82F6)
+val SkipTextColor = Color(0xFF3B82F6)
+
+
+
 

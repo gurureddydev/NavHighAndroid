@@ -1,7 +1,8 @@
 package com.example.navhigh.common.components
 
-
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
@@ -10,6 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -21,110 +23,58 @@ import com.example.navhigh.ui.theme.AppTypography
 import com.example.navhigh.ui.theme.ForgotPasswordBlue
 import com.example.navhigh.ui.theme.NavHighTheme
 
-
-
 @Composable
 fun AlreadyHaveAccount(
-
     onLogin: () -> Unit,
-
     onContinue: () -> Unit
-
 ) {
 
-
     var showDialog by remember {
-
         mutableStateOf(false)
-
     }
 
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.BottomCenter
+    ) {
 
+        Text(
+            text = "I already have an account",
+            color = ForgotPasswordBlue,
+            fontSize = AppTypography.DialogButtonSize,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    bottom = AppDimensions.BottomSpace
+                )
+                .clickable {
+                    showDialog = true
+                }
+        )
+    }
 
-    Text(
-
-        text = "I already have an account",
-
-        color = ForgotPasswordBlue,
-
-        fontSize = AppTypography.DialogButtonSize,
-
-        fontWeight = FontWeight.SemiBold,
-
-        textAlign = TextAlign.Center,
-
-
-        modifier = Modifier
-
-            .fillMaxWidth()
-
-            .padding(
-
-                bottom = AppDimensions.BottomSpace
-
-            )
-
-            .clickable {
-
-
-                showDialog = true
-
-
-            }
-
-    )
-
-
-
-
-
-    if(showDialog){
-
+    if (showDialog) {
 
         AlreadyHaveAccountDialog(
 
-
             onDismiss = {
-
-
                 showDialog = false
-
-
             },
-
 
             onLogin = {
-
-
                 showDialog = false
-
                 onLogin()
-
-
             },
 
-
             onContinue = {
-
-
                 showDialog = false
-
                 onContinue()
-
-
             }
-
         )
-
-
     }
-
-
 }
-
-
-
-
 
 @Preview(
     showBackground = true,
@@ -132,21 +82,13 @@ fun AlreadyHaveAccount(
     device = "spec:width=412dp,height=915dp,dpi=420"
 )
 @Composable
-fun AlreadyHaveAccountPreview(){
+fun AlreadyHaveAccountPreview() {
 
-
-    NavHighTheme{
-
+    NavHighTheme {
 
         AlreadyHaveAccount(
-
             onLogin = {},
-
             onContinue = {}
-
         )
-
-
     }
-
 }

@@ -1,3 +1,112 @@
 <resources>
     <string name="app_name">NavHigh</string>
+    <!-- Birthday Screen -->
+    <string name="birthday_title_part1">"What\'s your "</string>
+    <string name="birthday_title_part2">date of birth</string>
+    <string name="birthday_title_part3">?</string>
+    <string name="birthday_description">Use your own birthday, even if this account is for a business, a pet or something else. No one will see this unless you choose to share it. </string>
+    <string name="birthday_why_link">Why do I need to provide my date of birth?</string>
+    <string name="birthday_next_button">Next</string>
+
+    <!-- Date Wheel Picker Dialog -->
+    <string name="date_picker_title">   Set date</string>
+    <string name="date_picker_cancel">CANCEL</string>
+    <string name="date_picker_set">SET</string>
+    <string-array name="month_names">
+        <item>January</item>
+        <item>February</item>
+        <item>March</item>
+        <item>April</item>
+        <item>May</item>
+        <item>June</item>
+        <item>July</item>
+        <item>August</item>
+        <item>September</item>
+        <item>October</item>
+        <item>November</item>
+        <item>December</item>
+    </string-array>
+
+    <string-array name="month_abbr">
+        <item>Jan</item>
+        <item>Feb</item>
+        <item>Mar</item>
+        <item>Apr</item>
+        <item>May</item>
+        <item>Jun</item>
+        <item>Jul</item>
+        <item>Aug</item>
+        <item>Sep</item>
+        <item>Oct</item>
+        <item>Nov</item>
+        <item>Dec</item>
+    </string-array>
+
+    <!-- Birthday Info Bottom Sheet -->
+    <string name="birthday_sheet_title">Birthdays</string>
+    <string name="birthday_sheet_body">Providing your birthday improves the features and ads that you see and helps keep the Instagram community safe. You can find your birthday in your account settings. </string>
+    <string name="birthday_sheet_learn_more">Learn more</string>
+    <string name="birthday_sheet_close_description">Close</string>
+
+    <!-- Email Screen -->
+    <string name="email_back_description">Back</string>
+    <string name="email_title_line1">What\'s your</string>
+    <string name="email_title_line2">" email?"</string>
+    <string name="email_description">Enter the email where you can\nbe contacted. No one will see this\non your profile.</string>
+    <string name="email_error_text">Enter a correct email address,\nlike name@example.com</string>
+    <string name="email_next_button">Next</string>
+
+    <string name="login_button">Log In</string>
+    <string name="login_forgot_password">Forgot Password?</string>
+    <string name="login_or_divider">OR</string>
+    <string name="login_google_description">Google</string>
+    <string name="login_google_button">Continue with Google</string>
+    <string name="login_create_account_button">Create new account</string>
+    <string name="login_error_title">Login Failed</string>
+    <string name="login_error_message">Enter your username, email or password to log in</string>
+    <string name="login_error_ok">OK</string>
+    <string name="login_error_create_account">CREATE ACCOUNT</string>
+
+    <!-- FullName Screen -->
+    <string name="fullname_title">What\'s your name?</string>
+    <string name="fullname_description">Enter your full name so people can\nfind and recognize you.</string>
+    <string name="fullname_next_button">Next</string>
+
+    <!-- UserName Screen -->
+    <string name="username_title">Create a username</string>
+    <string name="username_description">Add a username or use our suggestion.\nYou can change this at any time.</string>
+    <string name="username_next_button">Next</string>
+
+    <!-- OTP Screen -->
+    <string name="otp_title_line1">Enter the</string>
+    <string name="otp_title_line2_part1">"confirmation "</string>
+    <string name="otp_title_line2_part2">code</string>
+    <string name="otp_description">To confirm your profile, enter the 6-digit code we sent to</string>
+    <string name="otp_error_text">Invalid confirmation code</string>
+    <string name="otp_next_button">Next</string>
+    <string name="otp_resend_button">I didn\u2019t get the code</string>
+    <string name="otp_sheet_close">\u2715</string>
+    <string name="otp_sheet_resend_option">Resend confirmation code</string>
+    <string name="otp_sheet_change_email_option">Change email</string>
+
+    <!-- Password Screen -->
+    <string name="password_title_part1">"Create a "  </string>
+    <string name="password_title_part2"> password</string>
+    <string name="password_description">Create a password with at least 6 letters\nor numbers. It should be something\nothers can\'t guess.</string>
+    <string name="password_remember_text">Remember login info.</string>
+    <string name="password_learn_more">Learn more</string>
+    <string name="password_next_button">Next</string>
+    <string name="password_checkbox_checked_description">Checked</string>
+
+    <string name="splash_loading_text">Loading...</string>
+
+    <!-- Contacts Sync Screen -->
+    <string name="contacts_sync_title_line1">Next, you can allow\naccess to your contacts\nto make it easier to\nfind your friends on</string>
+    <string name="contacts_sync_title_line2">NavHigh</string>
+    <string name="contacts_sync_body_sync">Your contacts will be periodically synced and stored securely on our servers so that we can help recommend people and things that are relevant to you.</string>
+    <string name="contacts_sync_body_settings_prefix">You can turn off syncing at any time in Settings.</string>
+    <string name="contacts_sync_learn_more">Learn more.</string>
+    <string name="contacts_sync_next_button">Next</string>
+    <string name="contacts_sync_skip">Skip</string>
+
 </resources>

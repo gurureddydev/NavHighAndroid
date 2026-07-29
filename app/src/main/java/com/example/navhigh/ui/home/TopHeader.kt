@@ -48,24 +48,24 @@ fun TopHeader(
             horizontalArrangement = Arrangement.Start
         ) {
             Image(
-                painter = painterResource(id = R.drawable.nav),
+                painter = painterResource(id = R.drawable.nav_high_logo),
                 contentDescription = "NavHigh Logo",
                 contentScale = ContentScale.Fit,
-                modifier = Modifier
-                    .size(28.dp)
-                    .padding(end = 8.dp)
+                modifier =Modifier
+                    .size(38.dp)
+                    .padding(bottom = 6.dp)
             )
 
             Text(
                 text = "Nav",
                 color = Color.White,
-                fontSize = 22.sp,
+                fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
             Text(
                 text = "High",
                 color = PrimaryBlue,
-                fontSize = 22.sp,
+                fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
         }

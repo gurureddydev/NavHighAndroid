@@ -65,6 +65,9 @@ fun HomeFeedScreen(onNavigate: (String) -> Unit = {}) {
     val tabsList = remember { listOf("For You", "Following", "Trending") }
     val scrollState = rememberLazyListState()
 
+    // --- FOLLOW STATE: lifted up here so it's shared across tabs/cards, starts empty ---
+    var followedProfiles by remember { mutableStateOf(setOf<String>()) }
+
     val stories = remember {
         listOf(
             LocalStoryData(1, "Your Story", R.drawable.robo),
@@ -133,6 +136,9 @@ fun HomeFeedScreen(onNavigate: (String) -> Unit = {}) {
         )
     }
 
+    // --- POST FEED LIST (shown only on For You tab now) ---
+    val displayList = feedList
+
     // --- SCREEN PLAYER STATE ENGINE ---
     var currentPlayingIndex by remember { mutableStateOf<Int?>(0) }
     var isAudioPlayingGlobal by remember { mutableStateOf(true) }
@@ -176,10 +182,15 @@ fun HomeFeedScreen(onNavigate: (String) -> Unit = {}) {
         }
     }
 
-    LaunchedEffect(currentPlayingIndex) {
-        currentPlayingIndex?.let { index ->
+    // Scrolls to the active post's position — only relevant on the For You tab,
+    // since Following and Trending render no items at all now.
+    LaunchedEffect(currentPlayingIndex, selectedTab) {
+        if (selectedTab != 0) return@LaunchedEffect
+        val active = currentPlayingIndex?.let { feedList.getOrNull(it) }
+        val posInDisplay = active?.let { post -> displayList.indexOfFirst { it.id == post.id } }
+        if (posInDisplay != null && posInDisplay >= 0) {
             scope.launch {
-                scrollState.animateScrollToItem(index + 1)
+                scrollState.animateScrollToItem(posInDisplay + 1)
             }
         }
     }
@@ -234,64 +245,90 @@ fun HomeFeedScreen(onNavigate: (String) -> Unit = {}) {
             contentPadding = PaddingValues(bottom = 16.dp, start = 14.dp, end = 14.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            item {
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 2.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    items(items = stories, key = { it.id }) { story ->
-                        StoryItem1(
-                            image = story.image,
-                            name = story.name,
-                            isLive = story.isLive,
-                            onClick = {
-                                onNavigate("story_route/${story.name}")
+            when (selectedTab) {
+                // --- FOLLOWING TAB (index 1): completely empty, nothing rendered ---
+                1 -> {
+                    // intentionally empty
+                }
+
+                // --- FOR YOU TAB (index 0): stories row + full post feed ---
+                0 -> {
+                    item {
+                        LazyRow(
+                            contentPadding = PaddingValues(horizontal = 2.dp, vertical = 12.dp),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            items(items = stories, key = { it.id }) { story ->
+                                StoryItem1(
+                                    image = story.image,
+                                    name = story.name,
+                                    isLive = story.isLive,
+                                    onClick = {
+                                        onNavigate("story_route/${story.name}")
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    itemsIndexed(displayList, key = { _, post -> post.id }) { _, post ->
+                        val originalIndex = feedList.indexOfFirst { it.id == post.id }
+                        val isActiveCard = currentPlayingIndex == originalIndex
+                        val isThisCardPlaying = isActiveCard && isAudioPlayingGlobal
+
+                        AudioPostCardElegant(
+                            profileName = post.profileName,
+                            username = post.username,
+                            timeAgo = post.timeAgo,
+                            title = post.title,
+                            tags = post.tags,
+                            profileResId = post.profileResId,
+                            artworkResId = post.artworkResId,
+                            playsCount = post.playsCount,
+                            initialLikes = post.initialLikes,
+                            initialComments = post.initialComments,
+                            accentColor = post.accentColor,
+                            isGlobalPlaying = isThisCardPlaying,
+                            currentPosition = if (isActiveCard) currentPlaybackPosition else 0,
+                            totalDuration = if (isActiveCard) trackTotalDuration else 120000,
+                            isFollowing = post.profileName in followedProfiles,
+                            onFollowClick = {
+                                followedProfiles = followedProfiles + post.profileName
+                            },
+                            onUnfollowClick = {
+                                followedProfiles = followedProfiles - post.profileName
+                            },
+                            onProfileClick = {
+                                onNavigate("story_route/${post.profileName}")
+                            },
+                            onCommentClick = {
+                                onNavigate("comments_route/${post.id}")
+                            },
+                            onPlayToggle = { shouldPlay ->
+                                if (isActiveCard) {
+                                    isAudioPlayingGlobal = shouldPlay
+                                    if (shouldPlay) mediaPlayer?.start() else mediaPlayer?.pause()
+                                } else {
+                                    currentPlaybackPosition = 0
+                                    currentPlayingIndex = originalIndex
+                                    isAudioPlayingGlobal = true
+                                }
+                            },
+                            onSeek = { seekTarget ->
+                                if (isActiveCard) {
+                                    currentPlaybackPosition = seekTarget
+                                    mediaPlayer?.seekTo(seekTarget)
+                                }
                             }
                         )
                     }
                 }
-            }
 
-            itemsIndexed(feedList, key = { _, post -> post.id }) { index, post ->
-                val isActiveCard = currentPlayingIndex == index
-                val isThisCardPlaying = isActiveCard && isAudioPlayingGlobal
-
-                AudioPostCardElegant(
-                    profileName = post.profileName,
-                    username = post.username,
-                    timeAgo = post.timeAgo,
-                    title = post.title,
-                    tags = post.tags,
-                    profileResId = post.profileResId,
-                    artworkResId = post.artworkResId,
-                    playsCount = post.playsCount,
-                    initialLikes = post.initialLikes,
-                    initialComments = post.initialComments,
-                    accentColor = post.accentColor,
-                    isGlobalPlaying = isThisCardPlaying,
-                    currentPosition = if (isActiveCard) currentPlaybackPosition else 0,
-                    totalDuration = if (isActiveCard) trackTotalDuration else 120000,
-                    onProfileClick = {
-                        onNavigate("story_route/${post.profileName}")
-                    },
-                    onPlayToggle = { shouldPlay ->
-                        if (isActiveCard) {
-                            isAudioPlayingGlobal = shouldPlay
-                            if (shouldPlay) mediaPlayer?.start() else mediaPlayer?.pause()
-                        } else {
-                            currentPlaybackPosition = 0
-                            currentPlayingIndex = index
-                            isAudioPlayingGlobal = true
-                        }
-                    },
-                    onSeek = { seekTarget ->
-                        if (isActiveCard) {
-                            currentPlaybackPosition = seekTarget
-                            mediaPlayer?.seekTo(seekTarget)
-                        }
-                    }
-                )
+                // --- TRENDING TAB (index 2): completely empty, nothing rendered ---
+                else -> {
+                    // intentionally empty
+                }
             }
         }
     }
@@ -302,4 +339,3 @@ fun HomeFeedScreen(onNavigate: (String) -> Unit = {}) {
 fun HomeFeedScreenPreview() {
     HomeFeedScreen()
 }
-

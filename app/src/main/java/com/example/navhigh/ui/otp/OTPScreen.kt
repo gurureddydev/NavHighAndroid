@@ -6,7 +6,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,7 +13,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -34,11 +35,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
+import com.example.navhigh.R
 import com.example.navhigh.common.button.Button
 import com.example.navhigh.common.components.BackArrow
 import com.example.navhigh.common.components.ScreenTitle
@@ -48,140 +54,129 @@ import com.example.navhigh.ui.theme.AppTypography
 import com.example.navhigh.ui.theme.ForgotPasswordBlue
 import com.example.navhigh.ui.theme.LoginBackground
 import com.example.navhigh.ui.theme.NavHighTheme
-
+import com.example.navhigh.ui.theme.OtpDescriptionColor
+import com.example.navhigh.ui.theme.OtpEmailHighlightColor
+import com.example.navhigh.ui.theme.OtpErrorColor
+import com.example.navhigh.ui.theme.OtpLength
+import com.example.navhigh.ui.theme.OtpTextWhite
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OtpScreen(
-    email:String,
-    onBackClick:()->Unit={},
-    onNextClick:()->Unit={}
-){
+    email: String,
+    onBackClick: () -> Unit = {},
+    onNextClick: () -> Unit = {},
+    onChangeEmailClick: () -> Unit = {},   // Navigates back to EmailScreen
+    showBackArrow: Boolean = true
+) {
 
     var otp by remember { mutableStateOf("") }
     var isError by remember { mutableStateOf(false) }
     var showResendSheet by remember { mutableStateOf(false) }
 
-    val focusRequester=remember{FocusRequester() }
+    val focusRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
 
-    BoxWithConstraints(
-        modifier=Modifier
+    val configuration = LocalConfiguration.current
+    val isTablet = configuration.screenWidthDp >= 600
+
+    val contentWidth: Dp =
+        if (isTablet) AppDimensions.OtpTabletContentMaxWidth else Dp.Unspecified
+
+    Box(
+        modifier = Modifier
             .fillMaxSize()
             .background(LoginBackground)
-    ){
+    ) {
 
-        val contentWidth=if(maxWidth>AppDimensions.TabletBreakpoint){ AppDimensions.OtpTabletContentMaxWidth }else{ AppDimensions.OtpContentMaxWidth }
-
-        Column(modifier=Modifier
-                .widthIn(max=contentWidth)
-                .fillMaxSize()
+        Column(
+            modifier = Modifier
                 .align(Alignment.TopCenter)
-                .imePadding()
-                .padding(
-                    horizontal=AppDimensions.OtpScreenHorizontalPadding,
-                    vertical=AppDimensions.OtpScreenVerticalPadding
-                ),
-            horizontalAlignment=Alignment.Start
-        ){
+                .statusBarsPadding()
+                .then(
+                    if (isTablet) {
+                        Modifier.width(contentWidth)
+                    } else {
+                        Modifier.fillMaxWidth()
+                    }
+                )
+                .padding(horizontal = AppDimensions.ScreenPadding)
+                .navigationBarsPadding()
+                .imePadding(),
+            horizontalAlignment = Alignment.Start
+        ) {
+            Spacer(modifier = Modifier.height(AppDimensions.TopSpace))
+            BackArrow(onClick = { onBackClick() })
 
-            BackArrow(
-
-                onClick = {
-
-                    onBackClick()
-
-                }
-
-            )
-
-            Spacer(modifier=Modifier.height(AppDimensions.OtpBackArrowSpacing))
+            Spacer(modifier = Modifier.height (AppDimensions.OtpBackArrowSpacing))
 
             ScreenTitle(
-
                 lines = listOf(
-
-
-                    // First line
                     listOf(
-
-                        TitlePart(
-                            text = "Enter the"
-                        )
-
+                        TitlePart(text = stringResource(R.string.otp_title_line1))
                     ),
-
-
-                    // Second line with mixed colors
                     listOf(
-
+                        TitlePart(text = stringResource(R.string.otp_title_line2_part1)),
                         TitlePart(
-                            text = "confirmation "
-                        ),
-
-
-                        TitlePart(
-
-                            text = "code",
-
+                            text = stringResource(R.string.otp_title_line2_part2),
                             color = ForgotPasswordBlue
-
                         )
-
                     )
-
-
                 )
-
             )
 
-            Spacer(modifier=Modifier.height(AppDimensions.OtpTitleSpacing))
+            Spacer(modifier = Modifier.height(AppDimensions.OtpTitleSpacing))
 
             Text(
-                text="To confirm your profile, enter the 6-digit code we sent to",
-                color=Color.LightGray,
-                fontSize=AppTypography.EmailDescriptionSize
-            )
-
-            Text(
-                text=email,
-                color=Color(0xFF00C8FF),
-                fontSize=AppTypography.EmailDescriptionSize
-            )
-
-            Spacer(modifier=Modifier.height(AppDimensions.OtpEmailTextSpacing))
-            Box(modifier=Modifier
-                    .fillMaxWidth()
-                    .clickable{
-                        focusRequester.requestFocus()
+                text = buildAnnotatedString {
+                    withStyle(style = SpanStyle(color = OtpDescriptionColor)) {
+                        append(stringResource(R.string.otp_description))
                     }
-            ){
+                    append(" ")
+                    withStyle(style = SpanStyle(color = OtpEmailHighlightColor)) {
+                        append(email)
+                    }
+                },
+                fontSize = AppTypography.EmailDescriptionSize
+            )
+
+            Spacer(modifier = Modifier.height(AppDimensions.OtpEmailTextSpacing))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { focusRequester.requestFocus() }
+            ) {
 
                 BasicTextField(
-                    value=otp,
-                    onValueChange={
-                        if(it.length<=6){
-                            otp=it
-                            isError=false
+                    value = otp,
+                    onValueChange = {
+                        if (it.length <= OtpLength) {
+                            otp = it
+                            isError = false
                         }
                     },
-                    keyboardOptions=KeyboardOptions(
-                        keyboardType=KeyboardType.Number,
-                        imeAction=ImeAction.Done
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Done
                     ),
-                    modifier=Modifier
+                    modifier = Modifier
                         .focusRequester(focusRequester)
                         .fillMaxWidth(),
-                    decorationBox={
+                    decorationBox = {
 
                         Row(
-                            modifier=Modifier.fillMaxWidth(),
-                            horizontalArrangement=Arrangement.SpaceBetween
-                        ){
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
 
-                            repeat(6){index->
+                            repeat(OtpLength) { index ->
 
-                                val value=
-                                    if(index<otp.length)
+                                val value =
+                                    if (index < otp.length)
                                         otp[index].toString()
                                     else
                                         ""
@@ -193,7 +188,7 @@ fun OtpScreen(
                                         .border(
                                             width = AppDimensions.OtpBorderWidth,
                                             color = if (isError)
-                                                Color.Red
+                                                OtpErrorColor
                                             else
                                                 ForgotPasswordBlue,
                                             shape = RoundedCornerShape(
@@ -201,13 +196,13 @@ fun OtpScreen(
                                             )
                                         ),
                                     contentAlignment = Alignment.Center
-                                ){
+                                ) {
 
                                     Text(
-                                        text=value,
-                                        color=Color.White,
-                                        fontSize=AppTypography.EmailDescriptionSize,
-                                        fontWeight=FontWeight.Bold
+                                        text = value,
+                                        color = OtpTextWhite,
+                                        fontSize = AppTypography.EmailDescriptionSize,
+                                        fontWeight = FontWeight.Bold
                                     )
                                 }
                             }
@@ -216,155 +211,132 @@ fun OtpScreen(
                 )
             }
 
-            if(isError){
+            if (isError) {
 
                 Text(
-                    text="Invalid confirmation code",
-                    color=Color.Red,
-                    fontSize=AppTypography.EmailDescriptionSize,
-                    modifier=Modifier.padding(
-                        top=AppDimensions.OtpErrorTextPadding
+                    text = stringResource(R.string.otp_error_text),
+                    color = OtpErrorColor,
+                    fontSize = AppTypography.EmailDescriptionSize,
+                    modifier = Modifier.padding(
+                        top = AppDimensions.OtpErrorTextPadding
                     )
                 )
             }
 
-            Spacer(modifier=Modifier.height(AppDimensions.OtpButtonSpacing))
+            Spacer(modifier = Modifier.height(AppDimensions.OtpButtonSpacing))
 
             Button(
-                text="Next",
-                onClick={
+                text = stringResource(R.string.otp_next_button),
+                onClick = {
+                    // Dismiss the keyboard as soon as Next is tapped, regardless of validity
+                    keyboardController?.hide()
+                    focusManager.clearFocus()
 
-                    if(otp.length==6){
-
+                    if (otp.length == OtpLength) {
                         onNextClick()
-
-                    }else{ isError=true
-
+                    } else {
+                        isError = true
                     }
                 }
             )
 
-            Spacer(modifier=Modifier.height(AppDimensions.OtpResendButtonSpacing))
+            Spacer(modifier = Modifier.height(AppDimensions.OtpResendButtonSpacing))
 
             OutlinedButton(
-                onClick={
-                    showResendSheet=true
+                onClick = {
+                    keyboardController?.hide()
+                    focusManager.clearFocus()
+                    showResendSheet = true
                 },
-                modifier=Modifier
+                modifier = Modifier
                     .fillMaxWidth()
-                    .height(
-                        AppDimensions.OtpResendButtonHeight
-                    ),
-                shape=RoundedCornerShape(
-                    AppDimensions.OtpResendButtonRadius
-                ),
-                border=BorderStroke(
+                    .height(AppDimensions.OtpResendButtonHeight),
+                shape = RoundedCornerShape(AppDimensions.OtpResendButtonRadius),
+                border = BorderStroke(
                     AppDimensions.OtpBorderWidth,
                     ForgotPasswordBlue
                 )
-            ){
+            ) {
 
                 Text(
-                    text="I didn’t get the code",
-                    color=Color.White,
-                    fontSize=AppTypography.EmailDescriptionSize
+                    text = stringResource(R.string.otp_resend_button),
+                    color = OtpTextWhite,
+                    fontSize = AppTypography.EmailDescriptionSize
                 )
             }
         }
 
 
-        if(showResendSheet){
+        if (showResendSheet) {
 
             ModalBottomSheet(
-                onDismissRequest={
-                    showResendSheet=false
-                },
-                containerColor=LoginBackground,
-                shape=RoundedCornerShape(
-                    topStart=AppDimensions.OtpSheetRadius,
-                    topEnd=AppDimensions.OtpSheetRadius
+                onDismissRequest = { showResendSheet = false },
+                containerColor = LoginBackground,
+                shape = RoundedCornerShape(
+                    topStart = AppDimensions.OtpSheetRadius,
+                    topEnd = AppDimensions.OtpSheetRadius
                 )
 
-            ){
+            ) {
 
                 Column(
-
-                    modifier=Modifier
-                        .widthIn(
-                            max=AppDimensions.OtpSheetMaxWidth
-                        )
+                    modifier = Modifier
+                        .widthIn(max = AppDimensions.OtpSheetMaxWidth)
                         .fillMaxWidth()
                         .align(Alignment.CenterHorizontally)
-                        .padding(
-                            AppDimensions.OtpSheetPadding
-                        )
+                        .padding(AppDimensions.OtpSheetPadding)
 
-                ){
+                ) {
 
                     Text(
-                        text="✕",
-                        color=Color.White,
-                        fontSize=AppTypography.EmailTitleSize,
-                        modifier=Modifier.clickable{
-
-                            showResendSheet=false
-
-                        }
+                        text = stringResource(R.string.otp_sheet_close),
+                        color = OtpTextWhite,
+                        fontSize = AppTypography.EmailTitleSize,
+                        modifier = Modifier.clickable { showResendSheet = false }
                     )
 
-                    Spacer(modifier=Modifier.height(AppDimensions.OtpSheetTopSpacing))
+                    Spacer(modifier = Modifier.height(AppDimensions.OtpSheetTopSpacing))
                     Column(
-
-                        modifier=Modifier
+                        modifier = Modifier
                             .fillMaxWidth()
                             .border(
-                                width=AppDimensions.OtpBorderWidth,
-                                color=ForgotPasswordBlue,
-                                shape=RoundedCornerShape(
-                                    AppDimensions.OtpSheetBoxRadius
-                                )
+                                width = AppDimensions.OtpBorderWidth,
+                                color = ForgotPasswordBlue,
+                                shape = RoundedCornerShape(AppDimensions.OtpSheetBoxRadius)
                             )
 
-                    ){
+                    ) {
 
                         Text(
-                            text="Resend confirmation code",
-                            color=Color.White,
-                            fontSize=AppTypography.EmailDescriptionSize,
-                            modifier=Modifier
+                            text = stringResource(R.string.otp_sheet_resend_option),
+                            color = OtpTextWhite,
+                            fontSize = AppTypography.EmailDescriptionSize,
+                            modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(
-                                    AppDimensions.OtpSheetItemPadding
-                                )
-                                .clickable{
-
-                                    showResendSheet=false
-
+                                .padding(AppDimensions.OtpSheetItemPadding)
+                                .clickable {
+                                    showResendSheet = false
+                                    // TODO: trigger resend OTP logic here
                                 }
                         )
 
-                        HorizontalDivider(
-                            color=ForgotPasswordBlue
-                        )
+                        HorizontalDivider(color = ForgotPasswordBlue)
 
                         Text(
-                            text="Change email",
-                            color=Color.White,
-                            fontSize=AppTypography.EmailDescriptionSize,
-                            modifier=Modifier
+                            text = stringResource(R.string.otp_sheet_change_email_option),
+                            color = OtpTextWhite,
+                            fontSize = AppTypography.EmailDescriptionSize,
+                            modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(
-                                    AppDimensions.OtpSheetItemPadding
-                                )
-                                .clickable{
-
-                                    showResendSheet=false
-
+                                .padding(AppDimensions.OtpSheetItemPadding)
+                                .clickable {
+                                    showResendSheet = false
+                                    onChangeEmailClick()   // Navigate to EmailScreen
                                 }
                         )
                     }
 
-                    Spacer(modifier=Modifier.height(AppDimensions.OtpSheetBottomSpacing))
+                    Spacer(modifier = Modifier.height(AppDimensions.OtpSheetBottomSpacing))
 
                 }
             }
@@ -374,77 +346,70 @@ fun OtpScreen(
 
 
 @Composable
-fun OtpBottomSheetPreviewContent(){
+fun OtpBottomSheetPreviewContent() {
 
-    Box(modifier=Modifier
+    Box(
+        modifier = Modifier
             .fillMaxSize()
             .background(LoginBackground)
-    ){
+    ) {
 
         Column(
-            modifier=Modifier
+            modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
-                .widthIn(
-                    max=AppDimensions.OtpSheetMaxWidth
-                )
+                .widthIn(max = AppDimensions.OtpSheetMaxWidth)
                 .background(
                     LoginBackground,
                     RoundedCornerShape(
-                        topStart=AppDimensions.OtpSheetRadius,
-                        topEnd=AppDimensions.OtpSheetRadius
+                        topStart = AppDimensions.OtpSheetRadius,
+                        topEnd = AppDimensions.OtpSheetRadius
                     )
                 )
                 .padding(AppDimensions.OtpSheetPadding)
 
-        ){
+        ) {
 
             Text(
-                text="✕",
-                color=Color.White,
-                fontSize=AppTypography.EmailTitleSize
+                text = stringResource(R.string.otp_sheet_close),
+                color = OtpTextWhite,
+                fontSize = AppTypography.EmailTitleSize
             )
 
-            Spacer(modifier=Modifier.height(AppDimensions.OtpSheetTopSpacing))
+            Spacer(modifier = Modifier.height(AppDimensions.OtpSheetTopSpacing))
 
-            Column(modifier=Modifier
+            Column(
+                modifier = Modifier
                     .fillMaxWidth()
                     .border(
-                        width=AppDimensions.OtpBorderWidth,
-                        color=ForgotPasswordBlue,
-                        shape=RoundedCornerShape(
-                            AppDimensions.OtpSheetBoxRadius
-                        )
+                        width = AppDimensions.OtpBorderWidth,
+                        color = ForgotPasswordBlue,
+                        shape = RoundedCornerShape(AppDimensions.OtpSheetBoxRadius)
                     )
-            ){
+            ) {
 
                 Text(
-                    text="Resend confirmation code",
-                    color=Color.White,
-                    fontSize=AppTypography.EmailDescriptionSize,
-                    modifier=Modifier
+                    text = stringResource(R.string.otp_sheet_resend_option),
+                    color = OtpTextWhite,
+                    fontSize = AppTypography.EmailDescriptionSize,
+                    modifier = Modifier
                         .fillMaxWidth()
-                        .padding(
-                            AppDimensions.OtpSheetItemPadding
-                        )
+                        .padding(AppDimensions.OtpSheetItemPadding)
                 )
 
-                HorizontalDivider(color=ForgotPasswordBlue)
+                HorizontalDivider(color = ForgotPasswordBlue)
 
                 Text(
-                    text="Change email",
-                    color=Color.White,
-                    fontSize=AppTypography.EmailDescriptionSize,
-                    modifier=Modifier
+                    text = stringResource(R.string.otp_sheet_change_email_option),
+                    color = OtpTextWhite,
+                    fontSize = AppTypography.EmailDescriptionSize,
+                    modifier = Modifier
                         .fillMaxWidth()
-                        .padding(
-                            AppDimensions.OtpSheetItemPadding
-                        )
+                        .padding(AppDimensions.OtpSheetItemPadding)
                 )
             }
 
-            Spacer(modifier=Modifier.height(AppDimensions.OtpSheetBottomSpacing)
-            )
+            Spacer(modifier = Modifier.height(AppDimensions.OtpSheetBottomSpacing))
         }
     }
 }
@@ -452,17 +417,17 @@ fun OtpBottomSheetPreviewContent(){
 // PHONE PREVIEW
 
 @Preview(
-    showBackground=true,
-    showSystemUi=true,
-    device="spec:width=412dp,height=915dp,dpi=420"
+    showBackground = true,
+    showSystemUi = true,
+    device = "spec:width=412dp,height=915dp,dpi=420"
 )
 @Composable
-fun OtpPhonePreview(){
+fun OtpPhonePreview() {
 
-    NavHighTheme{
+    NavHighTheme {
 
         OtpScreen(
-            email="futuretech662006@gmail.com"
+            email = "futuretech662006@gmail.com"
         )
 
     }
@@ -472,17 +437,17 @@ fun OtpPhonePreview(){
 // TABLET PREVIEW
 
 @Preview(
-    showBackground=true,
-    showSystemUi=true,
-    device="spec:width=800dp,height=1280dp,dpi=240"
+    showBackground = true,
+    showSystemUi = true,
+    device = "spec:width=800dp,height=1280dp,dpi=240"
 )
 @Composable
-fun OtpTabletPreview(){
+fun OtpTabletPreview() {
 
-    NavHighTheme{
+    NavHighTheme {
 
         OtpScreen(
-            email="futuretech662006@gmail.com"
+            email = "futuretech662006@gmail.com"
         )
 
     }
@@ -492,14 +457,14 @@ fun OtpTabletPreview(){
 // BOTTOM SHEET PREVIEW
 
 @Preview(
-    showBackground=true,
-    showSystemUi=true,
-    device="spec:width=412dp,height=915dp,dpi=420"
+    showBackground = true,
+    showSystemUi = true,
+    device = "spec:width=412dp,height=915dp,dpi=420"
 )
 @Composable
-fun OtpBottomSheetPreview(){
+fun OtpBottomSheetPreview() {
 
-    NavHighTheme{
+    NavHighTheme {
 
         OtpBottomSheetPreviewContent()
 

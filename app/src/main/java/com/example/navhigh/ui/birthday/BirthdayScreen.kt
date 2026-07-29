@@ -1,6 +1,5 @@
 package com.example.navhigh.ui.birthday
 
-import android.graphics.drawable.ColorDrawable
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,12 +14,17 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -31,50 +35,71 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
+import androidx.core.graphics.drawable.toDrawable
+import com.example.navhigh.R
 import com.example.navhigh.common.button.Button
 import com.example.navhigh.common.components.AlreadyHaveAccount
 import com.example.navhigh.common.components.BackArrow
 import com.example.navhigh.common.components.ScreenTitle
 import com.example.navhigh.common.components.TitlePart
 import com.example.navhigh.common.textfield.DateOfBirthTextField
+import com.example.navhigh.ui.theme.AppDimensions
+import com.example.navhigh.ui.theme.AppTypography
+import com.example.navhigh.ui.theme.BirthdayBgBlack
+import com.example.navhigh.ui.theme.BirthdayCyanAccent
+import com.example.navhigh.ui.theme.BirthdayDialogBg
+import com.example.navhigh.ui.theme.BirthdayFieldBorder
+import com.example.navhigh.ui.theme.BirthdayTextGrey
+import com.example.navhigh.ui.theme.BirthdayTextWhite
+import com.example.navhigh.ui.theme.CircularRepeatCount
+import com.example.navhigh.ui.theme.DatePickerMaxYear
+import com.example.navhigh.ui.theme.DatePickerMinYear
 import com.example.navhigh.ui.theme.ForgotPasswordBlue
+import com.example.navhigh.ui.theme.FullWeight
+import com.example.navhigh.ui.theme.WheelAlphaDistanceFactor
+import com.example.navhigh.ui.theme.WheelAlphaMax
+import com.example.navhigh.ui.theme.WheelAlphaMin
+import com.example.navhigh.ui.theme.WheelCenterThreshold
+import com.example.navhigh.ui.theme.WheelDayWeight
+import com.example.navhigh.ui.theme.WheelDistanceMaxRows
+import com.example.navhigh.ui.theme.WheelDistanceMinRows
+import com.example.navhigh.ui.theme.WheelMonthWeight
+import com.example.navhigh.ui.theme.WheelYearWeight
+import kotlinx.coroutines.launch
 import java.util.Calendar
-
-// ---------- Colors ----------
-private val BgBlack = Color(0xFF03070C)
-private val DialogBg = Color(0xFF020508)
-private val CyanAccent = Color(0xFF29C4F0)
-private val TextWhite = Color(0xFFF2F5F8)
-private val TextGrey = Color(0xFF8C97A3)
-private val FieldBorder = Color(0xFF1E3A5F)
-
-private val MONTH_NAMES = arrayOf(
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
-)
-
-private val MONTH_ABBR = arrayOf(
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-)
-
+import kotlin.math.abs
+import android.graphics.Color as AndroidColor
 
 private fun calculateAge(year: Int, month: Int, day: Int): Int {
     val today = Calendar.getInstance()
@@ -90,7 +115,6 @@ private fun calculateAge(year: Int, month: Int, day: Int): Int {
 
     var age = today.get(Calendar.YEAR) - birth.get(Calendar.YEAR)
 
-    // Subtract 1 if this year's birthday hasn't happened yet.
     val birthdayNotYetOccurredThisYear =
         today.get(Calendar.MONTH) < birth.get(Calendar.MONTH) ||
                 (today.get(Calendar.MONTH) == birth.get(Calendar.MONTH) &&
@@ -108,25 +132,26 @@ fun BirthdayScreen(
     onLogin: () -> Unit = {},
     onContinue: () -> Unit = {}
 ) {
-    // Default the picker to TODAY's actual date instead of a fixed
-    // placeholder, per request. month is 0-indexed to match Calendar.MONTH.
+    val monthNames = stringArrayResource(R.array.month_names)
+
     val today = remember { Calendar.getInstance() }
     var birthdayYear by remember { mutableIntStateOf(today.get(Calendar.YEAR)) }
     var birthdayMonth by remember { mutableIntStateOf(today.get(Calendar.MONTH)) }
     var birthdayDay by remember { mutableIntStateOf(today.get(Calendar.DAY_OF_MONTH)) }
 
-    // Opens automatically as soon as the screen appears
     var showPicker by remember { mutableStateOf(true) }
-
-    // Controls the "why do we need this" bottom sheet
     var showInfoSheet by remember { mutableStateOf(false) }
 
+    val configuration = LocalConfiguration.current
+    val isTablet = configuration.screenWidthDp >= 600
+
+    val contentWidth: Dp =
+        if (isTablet) AppDimensions.PasswordTabletContentWidth else Dp.Unspecified
+
     val formattedBirthday = remember(birthdayYear, birthdayMonth, birthdayDay) {
-        "$birthdayDay ${MONTH_NAMES[birthdayMonth]} $birthdayYear"
+        "$birthdayDay ${monthNames[birthdayMonth]} $birthdayYear"
     }
 
-    // Recomputed any time the picked date changes, fed straight into the
-    // reusable DateOfBirthTextField's label instead of the old hardcoded "0".
     val age = remember(birthdayYear, birthdayMonth, birthdayDay) {
         calculateAge(birthdayYear, birthdayMonth, birthdayDay)
     }
@@ -134,67 +159,81 @@ fun BirthdayScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BgBlack)
+            .background(BirthdayBgBlack)
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 24.dp)
+                .align(Alignment.TopCenter)
+                .statusBarsPadding()
+                .then(
+                    if (isTablet) {
+                        Modifier.width(contentWidth)
+                    } else {
+                        Modifier.fillMaxWidth()
+                    }
+                )
+                .padding(horizontal = AppDimensions.ScreenPadding)
+                .navigationBarsPadding()
         ) {
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(AppDimensions.TopSpace))
 
-            BackArrow(onClick = onBack)
+            BackArrow(onClick = { onBack() })
 
-            Spacer(modifier = Modifier.height(15.dp))
+            Spacer(modifier = Modifier.height(AppDimensions.EmailBackArrowSpacing))
 
             ScreenTitle(
                 lines = listOf(
                     listOf(
-                        TitlePart(text = "What's your ", color = TextWhite),
-                        TitlePart(text = "date of birth", color = ForgotPasswordBlue),
-                        TitlePart(text = "?", color = TextWhite)
+                        TitlePart(
+                            text = stringResource(R.string.birthday_title_part1),
+                            color = BirthdayTextWhite
+                        ),
+                        TitlePart(
+                            text = stringResource(R.string.birthday_title_part2),
+                            color = ForgotPasswordBlue
+                        ),
+                        TitlePart(
+                            text = stringResource(R.string.birthday_title_part3),
+                            color = BirthdayTextWhite
+                        )
                     )
                 )
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(AppDimensions.EmailDescriptionSpacing))
 
+            val whyLinkText = stringResource(R.string.birthday_why_link)
             val descriptionText = buildAnnotatedString {
-                append("Use your own birthday, even if this account is for a business, a pet or something else. No one will see this unless you choose to share it. ")
+                append(stringResource(R.string.birthday_description))
                 withLink(
                     LinkAnnotation.Clickable(
                         tag = "WHY",
-                        styles = TextLinkStyles(style = SpanStyle(color = CyanAccent))
+                        styles = TextLinkStyles(style = SpanStyle(color = BirthdayCyanAccent))
                     ) {
                         showInfoSheet = true
                     }
                 ) {
-                    append("Why do I need to provide my date of birth?")
+                    append(whyLinkText)
                 }
             }
 
             Text(
                 text = descriptionText,
                 style = MaterialTheme.typography.bodyLarge.copy(
-                    color = TextGrey,
-                    fontSize = 12.sp,
-                    lineHeight = 20.sp
+                    color = BirthdayTextGrey,
+                    fontSize = AppTypography.BirthdayDescriptionTextSize,
+                    lineHeight = AppTypography.EmailDescriptionLineHeight
                 )
             )
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(AppDimensions.EmailTextFieldSpacing))
 
-            // Birthday field — reusable DateOfBirthTextField from CommonTextField.kt.
-            // No separate background/clip layer here — the OutlinedTextField
-            // inside DateOfBirthTextField already draws its own border/shape,
-            // so we just overlay a plain transparent clickable layer on top
-            // to intercept taps and open the picker.
             Box(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 DateOfBirthTextField(
                     value = formattedBirthday,
-                    onValueChange = {}, // read-only, value only changes via the picker
+                    onValueChange = {},
                     age = age
                 )
 
@@ -205,20 +244,30 @@ fun BirthdayScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(AppDimensions.EmailButtonSpacing))
 
-            // Next button (reusable)
             Button(
-                text = "Next",
+                text = stringResource(R.string.birthday_next_button),
                 onClick = { onNext(birthdayYear, birthdayMonth, birthdayDay) }
             )
 
-            // Pushes the account link down to sit centered at the bottom of the screen
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(FullWeight))
+        }
 
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(
+                    horizontal = AppDimensions.EmailScreenHorizontalPadding,
+                    vertical = AppDimensions.EmailScreenVerticalPadding
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             AlreadyHaveAccount(
-                onLogin = onLogin,
-                onContinue = onContinue
+                onLogin = { onLogin() },
+                onContinue = { onContinue() }
             )
         }
     }
@@ -245,13 +294,6 @@ fun BirthdayScreen(
     }
 }
 
-/**
- * Fully custom date picker built in Compose (day / month / year scroll wheels),
- * styled to match the screen exactly. Native android.app.DatePickerDialog is
- * skinned by the phone manufacturer (MIUI, ColorOS, etc.) and largely ignores
- * background/theme overrides — building this ourselves guarantees the same
- * look on every device.
- */
 @Composable
 private fun DateWheelPickerDialog(
     initialDay: Int,
@@ -260,98 +302,127 @@ private fun DateWheelPickerDialog(
     onDismiss: () -> Unit,
     onConfirm: (day: Int, month: Int, year: Int) -> Unit
 ) {
-    val days = remember { (1..31).map { it.toString() } }
-    val months = remember { MONTH_ABBR.toList() }
-    val currentYear = remember { Calendar.getInstance().get(Calendar.YEAR) }
-    val years = remember { (currentYear - 100..currentYear + 5).map { it.toString() } }
+    val monthAbbr = stringArrayResource(R.array.month_abbr)
 
-    var selectedDayIndex by remember { mutableIntStateOf((initialDay - 1).coerceIn(0, days.lastIndex)) }
-    var selectedMonthIndex by remember { mutableIntStateOf(initialMonth.coerceIn(0, months.lastIndex)) }
+    val days = remember { (1..31).map { it.toString() } }
+    val months = remember(monthAbbr) { monthAbbr.toList() }
+    val years = remember { (DatePickerMinYear..DatePickerMaxYear).map { it.toString() } }
+
+    var selectedDayIndex by remember {
+        mutableIntStateOf(
+            (initialDay - 1).coerceIn(
+                0,
+                days.lastIndex
+            )
+        )
+    }
+    var selectedMonthIndex by remember {
+        mutableIntStateOf(
+            initialMonth.coerceIn(
+                0,
+                months.lastIndex
+            )
+        )
+    }
     var selectedYearIndex by remember {
-        mutableIntStateOf(years.indexOf(initialYear.toString()).let { if (it >= 0) it else years.lastIndex })
+        mutableIntStateOf(
+            years.indexOf(initialYear.toString()).let { if (it >= 0) it else years.lastIndex })
     }
 
     Dialog(
         onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            dismissOnClickOutside = false,
+            dismissOnBackPress = false
+        )
     ) {
-        // The Dialog's underlying Android Window has its own default white
-        // background drawable, completely separate from the Surface color
-        // below. Stripping it here makes the window itself transparent so
-        // only our dark Surface is visible.
         val view = LocalView.current
         SideEffect {
             (view.parent as? DialogWindowProvider)?.window?.setBackgroundDrawable(
-                ColorDrawable(android.graphics.Color.TRANSPARENT)
+                AndroidColor.TRANSPARENT.toDrawable()
             )
         }
 
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp),
+                .padding(horizontal = AppDimensions.DatePickerHorizontalPadding),
             contentAlignment = Alignment.Center
         ) {
             Surface(
-                shape = RoundedCornerShape(24.dp),
-                color = DialogBg,
-                modifier = Modifier.fillMaxWidth(0.94f)
+                color = BirthdayDialogBg,
+                modifier = Modifier.fillMaxWidth(AppDimensions.DatePickerSurfaceWidthFraction)
             ) {
-                // Tightened padding a bit (24.dp -> 20.dp) to match the
-                // shorter wheel height below and keep the card compact.
-                Column(modifier = Modifier.padding(20.dp)) {
+                Column(modifier = Modifier.padding(AppDimensions.DatePickerContentPadding)) {
                     Text(
-                        text = "Set date",
-                        color = TextWhite,
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Medium
+                        text = stringResource(R.string.date_picker_title),
+                        color = BirthdayTextWhite,
+                        fontSize = AppTypography.DatePickerTitleTextSize,
+                        fontWeight = FontWeight.Light
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(AppDimensions.DatePickerTitleSpacing))
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.spacedBy(AppDimensions.DatePickerWheelSpacing)
                     ) {
                         WheelColumn(
                             items = days,
                             selectedIndex = selectedDayIndex,
                             onSelectedIndexChange = { selectedDayIndex = it },
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(WheelDayWeight),
+                            isCircular = true,
+                            isNumeric = true,
+                            onTypedValue = { typed ->
+                                val clamped = typed.coerceIn(1, days.size)
+                                selectedDayIndex = clamped - 1
+                            }
                         )
                         WheelColumn(
                             items = months,
                             selectedIndex = selectedMonthIndex,
                             onSelectedIndexChange = { selectedMonthIndex = it },
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(WheelMonthWeight),
+                            isCircular = true,
+                            isNumeric = false
                         )
                         WheelColumn(
                             items = years,
                             selectedIndex = selectedYearIndex,
                             onSelectedIndexChange = { selectedYearIndex = it },
-                            modifier = Modifier.weight(1.3f)
+                            modifier = Modifier.weight(WheelYearWeight),
+                            isCircular = false,
+                            isNumeric = true,
+                            onTypedValue = { typed ->
+                                val minYear = years.first().toInt()
+                                val maxYear = years.last().toInt()
+                                val clamped = typed.coerceIn(minYear, maxYear)
+                                selectedYearIndex = years.indexOf(clamped.toString())
+                            }
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(AppDimensions.DatePickerActionsSpacing))
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.End
                     ) {
                         Text(
-                            text = "CANCEL",
-                            color = CyanAccent,
-                            fontSize = 14.sp,
+                            text = stringResource(R.string.date_picker_cancel),
+                            color = BirthdayCyanAccent,
+                            fontSize = AppTypography.DatePickerActionTextSize,
                             modifier = Modifier
                                 .clickable { onDismiss() }
-                                .padding(12.dp)
+                                .padding(AppDimensions.DatePickerActionPadding)
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(AppDimensions.DatePickerCancelSetSpacing))
                         Text(
-                            text = "SET",
-                            color = CyanAccent,
-                            fontSize = 14.sp,
+                            text = stringResource(R.string.date_picker_set),
+                            color = BirthdayCyanAccent,
+                            fontSize = AppTypography.DatePickerActionTextSize,
                             modifier = Modifier
                                 .clickable {
                                     onConfirm(
@@ -360,8 +431,9 @@ private fun DateWheelPickerDialog(
                                         years[selectedYearIndex].toInt()
                                     )
                                 }
-                                .padding(12.dp)
+                                .padding(AppDimensions.DatePickerActionPadding)
                         )
+                        Spacer(modifier = Modifier.width(AppDimensions.DatePickerActionEndSpacing))
                     }
                 }
             }
@@ -375,20 +447,61 @@ private fun WheelColumn(
     items: List<String>,
     selectedIndex: Int,
     onSelectedIndexChange: (Int) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isCircular: Boolean = false,
+    isNumeric: Boolean = false,
+    onTypedValue: (Int) -> Unit = {}
 ) {
-    // Bumped back up a bit from 40.dp / 3 rows so the wheel isn't too
-    // cramped, while staying shorter than the earlier 52.dp / 5 rows.
-    val itemHeight = 44.dp
-    val visibleCount = 4
-
-    val listState = rememberLazyListState(initialFirstVisibleItemIndex = selectedIndex)
-    val flingBehavior = rememberSnapFlingBehavior(listState)
-
-    LaunchedEffect(listState.isScrollInProgress) {
-        if (!listState.isScrollInProgress) {
-            onSelectedIndexChange(listState.firstVisibleItemIndex.coerceIn(0, items.lastIndex))
+    val itemHeight = AppDimensions.WheelItemHeight
+    val visibleCount = AppDimensions.WheelVisibleCount
+    val itemCount = items.size
+    val virtualCount = if (isCircular) itemCount * CircularRepeatCount else itemCount
+    val initialVirtualIndex = remember {
+        if (isCircular) {
+            val half = (CircularRepeatCount / 2) * itemCount
+            half + selectedIndex
+        } else {
+            selectedIndex
         }
+    }
+
+    val listState = rememberLazyListState(initialFirstVisibleItemIndex = initialVirtualIndex)
+    val flingBehavior = rememberSnapFlingBehavior(listState)
+    val coroutineScope = rememberCoroutineScope()
+    val density = LocalDensity.current
+    val focusManager = LocalFocusManager.current
+    val focusRequester = remember { FocusRequester() }
+
+    var isEditing by remember { mutableStateOf(false) }
+    var editingText by remember { mutableStateOf("") }
+
+    fun actualIndexOf(virtualIndex: Int): Int =
+        if (isCircular) ((virtualIndex % itemCount) + itemCount) % itemCount
+        else virtualIndex.coerceIn(0, itemCount - 1)
+
+    LaunchedEffect(selectedIndex) {
+        if (!listState.isScrollInProgress) {
+            val currentVirtual = closestItemIndexToCenter(listState)
+            val currentActual = actualIndexOf(currentVirtual)
+            if (currentActual != selectedIndex) {
+                val targetVirtual = if (isCircular) {
+                    currentVirtual + (selectedIndex - currentActual)
+                } else {
+                    selectedIndex
+                }
+                listState.animateScrollToItem(targetVirtual)
+            }
+        }
+    }
+
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.isScrollInProgress }
+            .collect { scrolling ->
+                if (!scrolling) {
+                    val centerVirtual = closestItemIndexToCenter(listState)
+                    onSelectedIndexChange(actualIndexOf(centerVirtual))
+                }
+            }
     }
 
     Box(
@@ -401,44 +514,136 @@ private fun WheelColumn(
             contentPadding = PaddingValues(vertical = itemHeight * (visibleCount / 2)),
             modifier = Modifier.fillMaxHeight()
         ) {
-            itemsIndexed(items) { index, label ->
-                val isSelected = index == listState.firstVisibleItemIndex
+            items(count = virtualCount, key = { it }) { virtualIndex ->
+                val actualIndex = actualIndexOf(virtualIndex)
+                val label = items[actualIndex]
+
+                val itemHeightPx = with(density) { itemHeight.toPx() }
+                val layoutInfo = listState.layoutInfo
+                val viewportCenter =
+                    (layoutInfo.viewportStartOffset + layoutInfo.viewportEndOffset) / 2f
+                val itemInfo = layoutInfo.visibleItemsInfo.firstOrNull { it.index == virtualIndex }
+                val itemCenter = itemInfo?.let { it.offset + it.size / 2f } ?: viewportCenter
+                val distancePx = abs(itemCenter - viewportCenter)
+                val distanceInRows = (distancePx / itemHeightPx).coerceIn(
+                    WheelDistanceMinRows,
+                    WheelDistanceMaxRows
+                )
+                val alpha = (WheelAlphaMax - distanceInRows * WheelAlphaDistanceFactor)
+                    .coerceIn(WheelAlphaMin, WheelAlphaMax)
+                val fontSize =
+                    (AppTypography.WheelMaxFontSize - distanceInRows * AppTypography.WheelFontSizeDistanceFactor)
+                        .coerceIn(AppTypography.WheelMinFontSize, AppTypography.WheelMaxFontSize)
+                val isCenter = distanceInRows < WheelCenterThreshold
+
                 Box(
                     modifier = Modifier
                         .height(itemHeight)
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .graphicsLayer { this.alpha = alpha }
+                        .clickable(enabled = !isEditing) {
+                            if (isCenter && isNumeric) {
+                                editingText = label
+                                isEditing = true
+                            } else {
+                                coroutineScope.launch {
+                                    listState.animateScrollToItem(virtualIndex)
+                                }
+                            }
+                        },
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = label,
-                        color = if (isSelected) TextWhite else TextGrey,
-                        fontSize = if (isSelected) 20.sp else 16.sp,
-                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-                    )
+                    if (isCenter && isEditing) {
+                        BasicTextField(
+                            value = editingText,
+                            onValueChange = { new ->
+                                if (new.length <= 4 && new.all { it.isDigit() }) {
+                                    editingText = new
+                                }
+                            },
+                            singleLine = true,
+                            textStyle = TextStyle(
+                                color = BirthdayTextWhite,
+                                fontSize = AppTypography.WheelEditTextSize,
+                                fontWeight = FontWeight.SemiBold,
+                                textAlign = TextAlign.Center
+                            ),
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Number,
+                                imeAction = ImeAction.Done
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onDone = {
+                                    editingText.toIntOrNull()?.let(onTypedValue)
+                                    isEditing = false
+                                    focusManager.clearFocus()
+                                }
+                            ),
+                            modifier = Modifier
+                                .width(AppDimensions.WheelEditFieldWidth)
+                                .focusRequester(focusRequester)
+                                .onFocusChanged { focusState ->
+                                    if (!focusState.isFocused && isEditing) {
+                                        editingText.toIntOrNull()?.let(onTypedValue)
+                                        isEditing = false
+                                    }
+                                }
+                        )
+                        LaunchedEffect(Unit) { focusRequester.requestFocus() }
+                    } else {
+                        Text(
+                            text = label,
+                            color = if (isCenter) BirthdayTextWhite else BirthdayTextGrey,
+                            fontSize = fontSize.sp,
+                            fontWeight = if (isCenter) FontWeight.SemiBold else FontWeight.Normal
+                        )
+                    }
                 }
             }
         }
 
-        // Selector lines above and below the centered item, like a native spinner
+        // Selector lines (top and bottom of the center row) — no offset used.
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(1.dp)
-                .align(Alignment.TopCenter)
-                .background(FieldBorder)
-        )
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(1.dp)
-                .align(Alignment.BottomCenter)
-                .background(FieldBorder)
-        )
+                .fillMaxWidth(AppDimensions.WheelSelectorLineWidthFraction)
+                .height(itemHeight)
+                .align(Alignment.Center)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(AppDimensions.WheelSelectorLineHeight)
+                    .align(Alignment.TopCenter)
+                    .background(BirthdayFieldBorder)
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(AppDimensions.WheelSelectorLineHeight)
+                    .align(Alignment.BottomCenter)
+                    .background(BirthdayFieldBorder)
+            )
+        }
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFF050B14, widthDp = 393, heightDp = 852)
+/** Finds the (virtual) index of the item whose center sits closest to the viewport's center. */
+private fun closestItemIndexToCenter(listState: LazyListState): Int {
+    val layoutInfo = listState.layoutInfo
+    val viewportCenter = (layoutInfo.viewportStartOffset + layoutInfo.viewportEndOffset) / 2f
+    return layoutInfo.visibleItemsInfo.minByOrNull { info ->
+        abs((info.offset + info.size / 2f) - viewportCenter)
+    }?.index ?: listState.firstVisibleItemIndex
+}
+
+@Preview(showBackground = true, widthDp = 393, heightDp = 852, name = "Phone")
 @Composable
 private fun BirthdayScreenPreview() {
+    BirthdayScreen()
+}
+
+@Preview(showBackground = true, widthDp = 800, heightDp = 1280, name = "Tablet")
+@Composable
+private fun BirthdayScreenTabletPreview() {
     BirthdayScreen()
 }

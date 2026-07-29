@@ -21,15 +21,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.sp
+import com.example.navhigh.R
 import com.example.navhigh.common.components.NavBrand
 import com.example.navhigh.ui.theme.AppDimensions
 import com.example.navhigh.ui.theme.AppTypography
 import com.example.navhigh.ui.theme.DarkBackground
 import com.example.navhigh.ui.theme.NavHighTheme
+import com.example.navhigh.ui.theme.SplashLoadingProgress
+import com.example.navhigh.ui.theme.SplashLoadingTextColor
+import com.example.navhigh.ui.theme.SplashLoadingTrack
 
 
 @Composable
@@ -131,10 +134,10 @@ fun SplashScreen(
             // BACKGROUND BAR
 
             Box(modifier = Modifier
-                    .width(AppDimensions.SplashLoadingBarWidth)
-                    .height(AppDimensions.SplashLoadingBarHeight)
-                    .clip(RoundedCornerShape(AppDimensions.SplashLoadingRadius))
-                    .background(Color(0xFF2B3147))
+                .width(AppDimensions.SplashLoadingBarWidth)
+                .height(AppDimensions.SplashLoadingBarHeight)
+                .clip(RoundedCornerShape(AppDimensions.SplashLoadingRadius))
+                .background(SplashLoadingTrack)
             ) {
 
 
@@ -142,10 +145,10 @@ fun SplashScreen(
                 // ANIMATED PROGRESS
 
                 Box(modifier = Modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth(progress.value)
-                        .clip(RoundedCornerShape(AppDimensions.SplashLoadingRadius))
-                        .background(Color(0xFF2C8DFF))
+                    .fillMaxHeight()
+                    .fillMaxWidth(progress.value)
+                    .clip(RoundedCornerShape(AppDimensions.SplashLoadingRadius))
+                    .background(SplashLoadingProgress)
                 )
 
 
@@ -157,11 +160,11 @@ fun SplashScreen(
 
 
 
-            Text(text = "Loading...",
-                color = Color.White.copy(alpha = 0.75f),
+            Text(text = stringResource(R.string.splash_loading_text),
+                color = SplashLoadingTextColor,
                 fontSize = AppTypography.SplashLoadingTextSize,
                 fontWeight = FontWeight.Normal,
-                letterSpacing = 1.sp
+                letterSpacing = AppTypography.SplashLoadingLetterSpacing
             )
         }
     }

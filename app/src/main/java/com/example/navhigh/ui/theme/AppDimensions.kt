@@ -128,9 +128,9 @@ object AppDimensions {
 
 
 
-    val EmailTextFieldSpacing = 10.dp
+    val EmailTextFieldSpacing = 8.dp
 
-    val EmailButtonSpacing = 25.dp
+    val EmailButtonSpacing = 14.dp
 
     val EmailBottomTextSpacing = 250.dp
     // ---------------- EMAIL SCREEN ----------------
@@ -148,7 +148,7 @@ object AppDimensions {
 
     val EmailBackArrowSize = 40.dp
 
-    val EmailBackArrowSpacing =20.dp
+    val EmailBackArrowSpacing =10.dp
 
 
 
@@ -203,9 +203,9 @@ object AppDimensions {
 
 // Button spacing
 
-    val OtpButtonSpacing = 35.dp
+    val OtpButtonSpacing = 20.dp
 
-    val OtpResendButtonSpacing = 30.dp
+    val OtpResendButtonSpacing = 15.dp
 
 
 // Resend button
@@ -217,15 +217,15 @@ object AppDimensions {
 
 
 
-    val OtpBackArrowSpacing = 20.dp
+    val OtpBackArrowSpacing = 10.dp
 
 
 
 // Text spacing
 
-    val OtpTitleSpacing = 15.dp
+    val OtpTitleSpacing = 10.dp
 
-    val OtpEmailTextSpacing = 30.dp
+    val OtpEmailTextSpacing = 10.dp
 
 
 
@@ -367,7 +367,7 @@ object AppDimensions {
     val CreatePasswordScreenTopPadding = 24.dp        // screen top padding
 
     // Back button
-    val BackButtonIconSize = 40.dp                    // back arrow icon size
+    val BackButtonIconSize = 20.dp                    // back arrow icon size
 
     // Spacers
     val SpacerAfterBackArrow = 24.dp                  // spacer between back arrow and title
@@ -386,24 +386,24 @@ object AppDimensions {
     val NextButtonHeight = 56.dp                      // Next button height
     val NextButtonCornerRadius = 28.dp
 
-    val ScreenPadding = 14.dp
+    val ScreenPadding = 18.dp
 
-    val TopSpace = 10.dp
+    val TopSpace = 15.dp
 
-    val BackToTitle = 20.dp
+    val BackToTitle =10.dp
 
-    val TitleToDescription = 18.dp
+    val TitleToDescription = 10.dp
 
-    val DescriptionToTextField = 15.dp
-
-
-
-    val TextFieldToRemember = 14.dp
-
-    val RememberToButton = 25.dp
+    val DescriptionToTextField = 10.dp
 
 
-    val BottomSpace = 20.dp
+
+    val TextFieldToRemember = 12.dp
+
+    val RememberToButton = 12.dp
+
+
+    val BottomSpace = 35.dp
 
     val RememberGap = 8.dp
 
@@ -420,6 +420,79 @@ object AppDimensions {
     val PasswordContentMaxWidth = 412.dp
 
     val PasswordTabletContentMaxWidth = 500.dp
+    // Birthday Screen
+    val BirthdayScreenHorizontalPadding = 18.dp
+    val BirthdayScreenMaxWidth = 480.dp
+    val BirthdayTopSpacing = 50.dp
+    val BirthdayTitleSpacing = 15.dp
+    val BirthdayDescriptionSpacing = 10.dp
+    val BirthdaySectionSpacing = 28.dp
+
+    // Date Wheel Picker Dialog
+    val DatePickerHorizontalPadding = 20.dp
+    val DatePickerContentPadding = 20.dp
+    val DatePickerTitleSpacing = 30.dp
+    val DatePickerWheelSpacing = 16.dp
+    val DatePickerActionsSpacing = 16.dp
+    val DatePickerCancelSetSpacing = 34.dp
+    val DatePickerActionEndSpacing = 20.dp
+    val DatePickerActionPadding = 12.dp
+    val DatePickerSurfaceWidthFraction = 0.94f
+
+    // Wheel Column
+    val WheelItemHeight = 60.dp
+    const val WheelVisibleCount = 3
+    val WheelEditFieldWidth = 60.dp
+    val WheelSelectorLineHeight = 1.dp
+    val WheelSelectorLineWidthFraction = 0.9f
+    // Birthday Info Bottom Sheet
+    val BirthdaySheetDragDismissThreshold = 120.dp
+    val BirthdaySheetHeightFraction = 0.56f
+    val BirthdaySheetCornerRadius = 28.dp
+    val BirthdaySheetHorizontalPadding = 28.dp
+    val BirthdaySheetVerticalPadding = 18.dp
+    val BirthdaySheetHandleWidth = 56.dp
+    val BirthdaySheetHandleHeight = 6.dp
+    val BirthdaySheetHandleSpacing = 24.dp
+    val BirthdaySheetCloseIconSize = 34.dp
+    val BirthdaySheetCloseIconSpacing = 28.dp
+    val BirthdaySheetTitleSpacing = 18.dp
+
+
+    val BirthdaySheetHandleCornerRadius = 50.dp
+    // FullName Screen
+    val FullNameTabletStartPadding = 120.dp
+    val FullNameTabletTopPadding = 15.dp
+    val FullNameTabletMaxWidth = 440.dp
+    val FullNameTabletDescriptionSpacing = 8.dp
+    val FullNameTabletFieldSpacing = 10.dp
+    val FullNamePhoneFieldSpacing = 10.dp
+    val FullNameTabletButtonSpacing = 14.dp
+    // UserName Screen
+    val UserNameTabletContentWidth = 420.dp
+    val UserNameTitleSpacing = 8.dp
+    val UserNameFieldSpacing = 10.dp
+    val UserNameBottomVerticalPadding = 24.dp
+    // Password Screen
+    val PasswordTabletContentWidth = 420.dp
+    val PasswordBottomVerticalPadding = 18.dp
+
+    val TermsAgreementBackArrowSpacing = 10.dp
+    val TermsAgreementSectionSpacing = 20.dp
+    val TermsAgreementButtonSpacing = 40.dp
+
+    val ContactsSyncTabletContentWidth = 480.dp
+    val ContactsSyncTopVerticalPadding = 40.dp
+    val ContactsSyncBottomVerticalPadding = 24.dp
+    val ContactsSyncTitleSpacing = 10.dp
+    val ContactsSyncRowSpacing = 24.dp
+    val ContactsSyncSkipSpacing = 16.dp
+    val ContactsSyncIconSize = 24.dp
+    val ContactsSyncIconTopPadding = 2.dp
+    val ContactsSyncIconTextSpacing = 16.dp
+
+    val accountselectionscreeenspacing = 40.dp
+    val followscreen= 20.dp
 
 
 }

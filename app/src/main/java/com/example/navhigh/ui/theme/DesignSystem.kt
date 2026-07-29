@@ -26,11 +26,12 @@ object AppTypography {
 
     // ---------------- EMAIL SCREEN TEXT ----------------
 
-    val EmailTitleSize = 25.sp
+    val EmailTitleSize = 26.sp
 
-    val EmailDescriptionSize = 14.sp
+    val EmailDescriptionSize = 12.sp
+    val contactpermissionsize= 14.sp
 
-    val EmailDescriptionLineHeight = 25.sp
+    val EmailDescriptionLineHeight = 20.sp
     val TextFieldTextSize = 16.sp
 
     val EmailBottomTextSize = 16.sp
@@ -73,7 +74,7 @@ object AppTypography {
     val OtpButtonTextSize = 16.sp
 
 
-    val DialogTitleSize = 22.sp
+    val DialogTitleSize = 20.sp
 
     val DialogMessageSize = 16.sp
 
@@ -113,7 +114,7 @@ object AppTypography {
 
     val Title = 36.sp
 
-    val Description = 14.sp
+    val Description = 12.sp
 
     val TextField = 20.sp
 
@@ -122,6 +123,25 @@ object AppTypography {
     val RememberText = 16.sp
 
     val BottomText = 22.sp
+    // Birthday Screen
+    val BirthdayDescriptionTextSize = 12.sp
+    val BirthdayDescriptionLineHeight = 20.sp
+
+    // Date Wheel Picker Dialog
+    val DatePickerTitleTextSize = 22.sp
+    val DatePickerActionTextSize = 16.sp
+    val WheelEditTextSize = 20.sp
+    val WheelMaxFontSize = 20f
+    val WheelMinFontSize = 15f
+    val WheelFontSizeDistanceFactor = 2.5f
+    // Birthday Info Bottom Sheet
+    val BirthdaySheetTitleTextSize = 31.sp
+    val BirthdaySheetBodyTextSize = 18.sp
+    val BirthdaySheetBodyLineHeight = 30.sp
+
+    val SplashLoadingLetterSpacing = 1.sp
+    val TermsAgreementBodyTextSize = 14.sp
+     val lineheight=25.sp
 
 
 }

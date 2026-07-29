@@ -30,9 +30,12 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -45,7 +48,6 @@ import com.example.navhigh.ui.theme.PlayerSurfaceBg
 import com.example.navhigh.ui.theme.WaveformInactiveColor
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.util.Locale
 
 
 
@@ -230,14 +232,22 @@ fun AudioPostCardElegant(
     isGlobalPlaying: Boolean = false,
     currentPosition: Int = 0,
     totalDuration: Int = 120000,
+    isFollowing: Boolean = false,
+    onFollowClick: () -> Unit = {},
+    onUnfollowClick: () -> Unit = {},
     onPlayToggle: (Boolean) -> Unit = {},
     onSeek: (Int) -> Unit = {},
-    onProfileClick: () -> Unit = {}
+    onProfileClick: () -> Unit = {},
+    onCommentClick: () -> Unit = {}
 ) {
     var isLiked by remember { mutableStateOf(false) }
     var likesCount by remember { mutableIntStateOf(initialLikes) }
     var isSaved by remember { mutableStateOf(false) }
-    var isFollowing by remember { mutableStateOf(false) }
+    var showOptionsMenu by remember { mutableStateOf(false) }
+
+    // Read locale in an observable way so recomposition happens correctly
+    val configuration = LocalConfiguration.current
+    val currentLocale = configuration.locales[0]
 
     val progress = remember(currentPosition, totalDuration) {
         if (totalDuration > 0) (currentPosition.toFloat() / totalDuration.toFloat()).coerceIn(0f, 1f) else 0f
@@ -271,6 +281,14 @@ fun AudioPostCardElegant(
                             text = profileName,
                             color = Color.White,
                             fontSize = 14.sp,
+                            lineHeight = 14.sp,
+                            style = LocalTextStyle.current.copy(
+                                platformStyle = PlatformTextStyle(includeFontPadding = false),
+                                lineHeightStyle = LineHeightStyle(
+                                    alignment = LineHeightStyle.Alignment.Center,
+                                    trim = LineHeightStyle.Trim.Both
+                                )
+                            ),
                             fontWeight = FontWeight.Bold,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -278,35 +296,52 @@ fun AudioPostCardElegant(
                         Spacer(modifier = Modifier.width(4.dp))
                         Icon(Icons.Default.CheckCircle, null, tint = accentColor, modifier = Modifier.size(14.dp))
                     }
-                    Text(text = "$username • $timeAgo", color = Color.Gray, fontSize = 11.sp)
-                }
-
-                OutlinedButton(
-                    onClick = { isFollowing = !isFollowing },
-                    modifier = Modifier
-                        .padding(bottom = 5.dp)
-                        .height(34.dp),
-                    contentPadding = PaddingValues(horizontal = 18.dp, vertical = 0.dp),
-                    shape = RoundedCornerShape(50),
-                    border = borderStroke(1.dp, FollowBorderBlue),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = Color.Transparent
-                    )
-                ) {
                     Text(
-                        text = if (isFollowing) "Following" else "Follow",
-                        color = FollowBorderBlue,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold
+                        text = "$username • $timeAgo",
+                        color = Color.Gray,
+                        fontSize = 11.sp,
+                        lineHeight = 11.sp,
+                        style = LocalTextStyle.current.copy(
+                            platformStyle = PlatformTextStyle(includeFontPadding = false),
+                            lineHeightStyle = LineHeightStyle(
+                                alignment = LineHeightStyle.Alignment.Center,
+                                trim = LineHeightStyle.Trim.Both
+                            )
+                        )
                     )
                 }
 
-                Spacer(modifier = Modifier.width(2.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+
+                // --- FOLLOW BUTTON: state now hoisted; disappears once isFollowing is true ---
+                if (!isFollowing) {
+                    OutlinedButton(
+                        onClick = onFollowClick,
+                        modifier = Modifier
+                            .padding(bottom = 5.dp)
+                            .height(34.dp),
+                        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 0.dp),
+                        shape = RoundedCornerShape(50),
+                        border = borderStroke(1.dp, FollowBorderBlue),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = Color.Transparent
+                        )
+                    ) {
+                        Text(
+                            text = "Follow",
+                            color = FollowBorderBlue,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(2.dp))
+                }
 
                 CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
                     Box(
                         modifier = Modifier
-                            .clickable { }
+                            .clickable { showOptionsMenu = true }
                             .layout { measurable, constraints ->
                                 val placeable = measurable.measure(constraints)
                                 layout(placeable.width, placeable.height) {
@@ -321,6 +356,30 @@ fun AudioPostCardElegant(
                             tint = Color.Gray,
                             modifier = Modifier.size(24.dp)
                         )
+
+                        DropdownMenu(
+                            expanded = showOptionsMenu,
+                            onDismissRequest = { showOptionsMenu = false },
+                            modifier = Modifier.background(CardBgDark)
+                        ) {
+                            if (isFollowing) {
+                                DropdownMenuItem(
+                                    text = { Text("Unfollow", color = Color.White) },
+                                    onClick = {
+                                        onUnfollowClick()
+                                        showOptionsMenu = false
+                                    }
+                                )
+                            }
+                            DropdownMenuItem(
+                                text = { Text("Report", color = Color.White) },
+                                onClick = { showOptionsMenu = false }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Share", color = Color.White) },
+                                onClick = { showOptionsMenu = false }
+                            )
+                        }
                     }
                 }
             }
@@ -372,7 +431,7 @@ fun AudioPostCardElegant(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = String.format(Locale.getDefault(), "%02d:%02d", (currentPosition / 1000) / 60, (currentPosition / 1000) % 60),
+                            text = String.format(currentLocale, "%02d:%02d", (currentPosition / 1000) / 60, (currentPosition / 1000) % 60),
                             color = accentColor,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold
@@ -434,7 +493,10 @@ fun AudioPostCardElegant(
                     Text(text = likesCount.toString(), color = Color.Gray, fontSize = 12.sp)
                 }
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    modifier = Modifier.clickable { onCommentClick() },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Image(
                         painter = painterResource(id = R.drawable.chat),
                         contentDescription = null,
@@ -522,7 +584,7 @@ fun AudioPostCardIvanaPreview() {
         artworkResId = R.drawable.ivana,
         playsCount = "1.2K",
         accentColor = Color(0xFFFFC107),
-        isGlobalPlaying = true, // Autoplays smoothly mock visible in dynamic preview layout
+        isGlobalPlaying = true,
         currentPosition = 42000,
         totalDuration = 180000
     )

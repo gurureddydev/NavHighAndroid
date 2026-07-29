@@ -7,12 +7,42 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Explore
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Explore
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -20,28 +50,31 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
-
-
+import com.example.navhigh.ui.getstarted.NavHighLogoScreen
+import com.example.navhigh.ui.agree.TermsAgreementScreen
+import com.example.navhigh.ui.birthday.BirthdayScreen
+import com.example.navhigh.ui.contacts.ContactsSyncScreen
+import com.example.navhigh.ui.accountsetup.AccountSetupScreen
+import com.example.navhigh.ui.accountselection.AccountPrivacyScreen
 import com.example.navhigh.ui.create.CreateScreen
 import com.example.navhigh.ui.email.EmailScreen
+import com.example.navhigh.ui.follow.FollowSuggestionsScreen
+import com.example.navhigh.ui.follow.SuggestedUser
 import com.example.navhigh.ui.home.HomeFeedScreen
 import com.example.navhigh.ui.login.LoginScreen
+import com.example.navhigh.ui.name.FullNameScreen
+import com.example.navhigh.ui.name.UserNameScreen
 import com.example.navhigh.ui.otp.OtpScreen
 import com.example.navhigh.ui.password.PasswordScreen
 import com.example.navhigh.ui.search.SearchScreen
 import com.example.navhigh.ui.splashscreen.SplashScreen
-import com.example.navhigh.ui.name.FullNameScreen
-import com.example.navhigh.ui.name.UserNameScreen
-
 import com.example.navhigh.ui.theme.AppDimensions
 import com.example.navhigh.ui.theme.AppTypography
 import com.example.navhigh.ui.theme.NavHighTheme
 
 
-
 @Composable
-fun MainScreen(){
-
+fun MainScreen() {
 
 
     var showSplash by remember {
@@ -51,16 +84,11 @@ fun MainScreen(){
     }
 
 
-
-
     var currentRoute by remember {
 
         mutableStateOf("Login")
 
     }
-
-
-
 
 
     var userEmail by remember {
@@ -70,9 +98,6 @@ fun MainScreen(){
     }
 
 
-
-
-
     var userFullName by remember {
 
         mutableStateOf("")
@@ -80,13 +105,7 @@ fun MainScreen(){
     }
 
 
-
-
-
-
-
-    if(showSplash){
-
+    if (showSplash) {
 
 
         SplashScreen(
@@ -109,14 +128,7 @@ fun MainScreen(){
     }
 
 
-
-
-
-
-
-
-    if(currentRoute == "Login"){
-
+    if (currentRoute == "Login") {
 
 
         LoginScreen(
@@ -149,15 +161,7 @@ fun MainScreen(){
     }
 
 
-
-
-
-
-
-
-
-    if(currentRoute == "Email"){
-
+    if (currentRoute == "Email") {
 
 
         EmailScreen(
@@ -184,12 +188,10 @@ fun MainScreen(){
             onNextClick = { email ->
 
 
-
                 userEmail = email
 
 
                 currentRoute = "Otp"
-
 
 
             }
@@ -204,15 +206,7 @@ fun MainScreen(){
     }
 
 
-
-
-
-
-
-
-
-    if(currentRoute == "Otp"){
-
+    if (currentRoute == "Otp") {
 
 
         OtpScreen(
@@ -233,8 +227,16 @@ fun MainScreen(){
             onNextClick = {
 
 
-
                 currentRoute = "Password"
+
+
+            },
+
+
+            onChangeEmailClick = {
+
+
+                currentRoute = "Email"
 
 
             }
@@ -247,50 +249,37 @@ fun MainScreen(){
         return
 
     }
-    if(currentRoute == "Password"){
-
+    if (currentRoute == "Password") {
 
 
         PasswordScreen(
 
 
-
             onBackClick = {
-
 
 
                 currentRoute = "Otp"
 
 
-
             },
-
-
 
 
             onNextClick = {
 
 
-
-                currentRoute = "FullName"
-
+                currentRoute = "Birthday"
 
 
             },
 
 
-
-
             onLoginClick = {
-
 
 
                 currentRoute = "Login"
 
 
-
             }
-
 
 
         )
@@ -300,38 +289,69 @@ fun MainScreen(){
         return
 
     }
+    if (currentRoute == "Birthday") {
 
 
+        BirthdayScreen(
 
-
-
-
-
-
-
-    if(currentRoute == "FullName"){
-
-
-
-        FullNameScreen(
-
-
-
-            onBackClick = {
-
-
+            onBack = {
 
                 currentRoute = "Password"
 
+            },
+
+
+            onNext = { year, month, day ->
+
+
+                currentRoute = "FullName"
 
 
             },
 
 
+            onLogin = {
+
+
+                currentRoute = "Login"
+
+
+            },
+
+
+            onContinue = {
+
+
+                currentRoute = "Birthday"
+
+
+            }
+
+
+        )
+
+
+        return
+
+    }
+
+
+    if (currentRoute == "FullName") {
+
+
+        FullNameScreen(
+
+
+            onBackClick = {
+
+
+                currentRoute = "Birthday"
+
+
+            },
 
 
             onNextClick = { name ->
-
 
 
                 userFullName = name
@@ -341,35 +361,25 @@ fun MainScreen(){
                 currentRoute = "Username"
 
 
-
             },
-
-
 
 
             onLoginClick = {
 
 
-
                 currentRoute = "Login"
-
 
 
             },
 
 
-
-
             onContinueClick = {
-
 
 
                 currentRoute = "FullName"
 
 
-
             }
-
 
 
         )
@@ -381,75 +391,49 @@ fun MainScreen(){
     }
 
 
-
-
-
-
-
-
-
-    if(currentRoute == "Username"){
-
+    if (currentRoute == "Username") {
 
 
         UserNameScreen(
 
 
-
             fullName = userFullName,
-
-
 
 
             onBackClick = {
 
 
-
                 currentRoute = "FullName"
 
 
-
             },
-
-
 
 
             onNextClick = {
 
 
-
-                currentRoute = "Home"
-
+                currentRoute = "TermsAgreement"
 
 
             },
-
-
 
 
             onLoginClick = {
 
 
-
                 currentRoute = "Login"
-
 
 
             },
 
 
-
-
             onContinueClick = {
-
 
 
                 currentRoute = "Username"
 
 
-
             }
-
 
 
         )
@@ -459,15 +443,305 @@ fun MainScreen(){
         return
 
     }
+
+
+    if (currentRoute == "TermsAgreement") {
+
+
+        TermsAgreementScreen(
+
+
+            onBackClick = {
+
+
+                currentRoute = "Username"
+
+
+            },
+
+
+            onLearnMoreClick = {
+
+
+                // TODO: open Learn more content
+
+
+            },
+
+
+            onTermsClick = {
+
+
+                // TODO: open Terms content
+
+
+            },
+
+
+            onPrivacyPolicyClick = {
+
+
+                // TODO: open Privacy Policy content
+
+
+            },
+
+
+            onCookiesPolicyClick = {
+
+
+                // TODO: open Cookies Policy content
+
+
+            },
+
+
+            onAgreeClick = {
+
+
+                currentRoute = "GetStarted"
+
+
+            },
+
+
+            onLogin = {
+
+
+                currentRoute = "Login"
+
+
+            },
+
+
+            onContinue = {
+
+
+                currentRoute = "TermsAgreement"
+
+
+            }
+
+
+        )
+
+
+
+        return
+
+    }
+
+
+    if (currentRoute == "GetStarted") {
+
+
+        NavHighLogoScreen(
+
+
+            fullName = userFullName,
+
+
+            onNextClick = {
+
+
+                currentRoute = "ContactsSync"
+
+
+            },
+
+
+            onLoginClick = {
+
+
+                currentRoute = "Login"
+
+
+            }
+
+
+        )
+
+
+
+        return
+
+    }
+
+
+    if (currentRoute == "ContactsSync") {
+
+
+        ContactsSyncScreen(
+
+
+            onNextClick = {
+
+
+                currentRoute = "AccountSetup"
+
+
+            },
+
+
+            onSkipClick = {
+
+
+                currentRoute = "AccountSetup"
+
+
+            },
+
+
+            onLearnMoreClick = {
+
+
+                // TODO: open Learn more content for contacts syncing
+
+
+            }
+
+
+        )
+
+
+
+        return
+
+    }
+
+
+    if (currentRoute == "AccountSetup") {
+
+
+        AccountSetupScreen(
+
+
+            onSetupFinished = {
+
+
+                // After the 6s setup spinner, go to Account Privacy first,
+                // then Privacy screen's own "Next" button takes the user to Follow
+                currentRoute = "AccountPrivacy"
+
+
+            }
+
+
+        )
+
+
+
+        return
+
+    }
+
+
+    if (currentRoute == "AccountPrivacy") {
+
+
+        AccountPrivacyScreen(
+
+
+            onBackClick = {
+
+
+                currentRoute = "AccountSetup"
+
+
+            },
+
+
+            onNextClick = { selectedPrivacy ->
+
+
+                // TODO: persist selectedPrivacy (e.g. save to user profile / backend) if needed
+
+
+                currentRoute = "Follow"
+
+
+            }
+
+
+        )
+
+
+
+        return
+
+    }
+
+
+    if (currentRoute == "Follow") {
+
+
+        FollowSuggestionsScreen(
+
+
+            // TODO: replace this hardcoded list with your real data source (ViewModel / API)
+            users = listOf(
+
+                SuggestedUser(id = "1", displayName = "Sai lakshmi Narayana", username = "karanam_sai_26"),
+
+                SuggestedUser(id = "2", displayName = "k.sravan", username = "k_sravan_kumar_"),
+
+                SuggestedUser(id = "3", displayName = "Sai Reddy", username = "iam_saikumar_reddy"),
+
+                SuggestedUser(id = "4", displayName = "tharun chowdary", username = "tharun_chowdary_15"),
+
+                SuggestedUser(id = "5", displayName = "EasyhomeShiftingbangalore", username = "ehomeshifting"),
+
+                SuggestedUser(id = "6", displayName = "T Nitish Timpuraram", username = "nitish_t")
+
+            ),
+
+
+            onBackClick = {
+
+
+                currentRoute = "AccountPrivacy"
+
+
+            },
+
+
+            onSkipClick = {
+
+
+                currentRoute = "Home"
+
+
+            },
+
+
+            onFollowClick = { selectedIds ->
+
+
+                // TODO: persist selectedIds (follow API call / ViewModel)
+
+
+                currentRoute = "Home"
+
+
+            }
+
+
+        )
+
+
+
+        return
+
+    }
+
+
     Scaffold(
 
 
         containerColor = Color(0xFF020817),
 
 
-
         bottomBar = {
-
 
 
             BottomNavigationBar(
@@ -476,17 +750,13 @@ fun MainScreen(){
                 currentRoute = currentRoute,
 
 
-
                 onRouteSelected = { newRoute ->
-
 
 
                     currentRoute = newRoute
 
 
-
                 }
-
 
 
             )
@@ -495,13 +765,7 @@ fun MainScreen(){
         }
 
 
-
-    ){ innerPadding ->
-
-
-
-
-
+    ) { innerPadding ->
 
 
         Box(
@@ -516,192 +780,138 @@ fun MainScreen(){
                 .fillMaxSize()
 
 
-
-        ){
-
+        ) {
 
 
-
-
-            when(currentRoute){
-
-
-
-
-
+            when (currentRoute) {
 
 
                 "Home" -> {
 
 
+                    HomeFeedScreen(
 
 
-                    HomeFeedScreen()
+                        onNavigate = { route ->
 
 
+                            when (route) {
+
+
+                                "search_route" -> {
+
+                                    currentRoute = "Search"
+
+                                }
+
+
+                                "notifications_route" -> {
+
+                                    currentRoute = "Notifications"
+
+                                }
+
+
+                                else -> {
+
+                                    // TODO: handle story_route/... and other dynamic routes if needed
+
+                                }
+
+
+                            }
+
+
+                        }
+
+
+                    )
 
 
                 }
-
-
-
-
-
-
-
 
 
                 "Search" -> {
 
 
-
-
                     SearchScreen()
 
 
-
-
                 }
-
-
-
-
-
-
-
 
 
                 "Create" -> {
 
 
-
-
                     CreateScreen(
-
 
 
                         onCloseClick = {
 
 
-
                             currentRoute = "Home"
-
 
 
                         },
 
 
-
                         onDraftsClick = {}
-
 
 
                     )
 
 
-
-
                 }
-
-
-
-
-
-
-
 
 
                 "Notifications" -> {
 
 
-
-
                     PlaceholderScreen(
-
 
 
                         title = "Notifications Screen"
 
 
-
                     )
 
 
-
-
                 }
-
-
-
-
-
-
-
 
 
                 "Profile" -> {
 
 
-
-
                     PlaceholderScreen(
-
 
 
                         title = "Profile Screen"
 
 
-
                     )
-
-
 
 
                 }
 
 
-
-
-
-
-
             }
-
-
-
-
-
 
 
         }
 
 
-
-
-
-
-
     }
-
 
 
 }
 
 
-
-
-
-
-
-
-
 @Composable
 fun PlaceholderScreen(
 
-    title:String
+    title: String
 
-){
-
+) {
 
 
     Box(
@@ -710,49 +920,40 @@ fun PlaceholderScreen(
         modifier = Modifier.fillMaxSize(),
 
 
-
         contentAlignment = Alignment.Center
 
 
-
-    ){
-
+    ) {
 
 
         Text(
 
 
-
             text = title,
-
 
 
             color = Color.White,
 
 
-
             fontSize = 20.sp
-
 
 
         )
 
 
-
     }
 
 
-
 }
+
 @Composable
 fun BottomNavigationBar(
 
-    currentRoute:String,
+    currentRoute: String,
 
-    onRouteSelected:(String)->Unit
+    onRouteSelected: (String) -> Unit
 
-){
-
+) {
 
 
     Column(
@@ -773,8 +974,7 @@ fun BottomNavigationBar(
 
             )
 
-    ){
-
+    ) {
 
 
         HorizontalDivider(
@@ -784,9 +984,6 @@ fun BottomNavigationBar(
             color = Color(0xFF102040)
 
         )
-
-
-
 
 
         Row(
@@ -810,10 +1007,7 @@ fun BottomNavigationBar(
 
             verticalAlignment = Alignment.CenterVertically
 
-        ){
-
-
-
+        ) {
 
 
             NavItem(
@@ -839,11 +1033,6 @@ fun BottomNavigationBar(
             )
 
 
-
-
-
-
-
             NavItem(
 
                 modifier = Modifier.weight(1f),
@@ -867,11 +1056,6 @@ fun BottomNavigationBar(
             )
 
 
-
-
-
-
-
             NavItem(
 
                 modifier = Modifier.weight(1f),
@@ -893,12 +1077,6 @@ fun BottomNavigationBar(
                 }
 
             )
-
-
-
-
-
-
 
 
             NavItem(
@@ -926,11 +1104,6 @@ fun BottomNavigationBar(
             )
 
 
-
-
-
-
-
             NavItem(
 
                 modifier = Modifier.weight(1f),
@@ -954,23 +1127,13 @@ fun BottomNavigationBar(
             )
 
 
-
         }
-
 
 
     }
 
 
-
 }
-
-
-
-
-
-
-
 
 
 @Composable
@@ -978,36 +1141,30 @@ fun NavItem(
 
     modifier: Modifier = Modifier,
 
-    label:String,
+    label: String,
 
-    selected:Boolean,
+    selected: Boolean,
 
-    iconOutlined:ImageVector,
+    iconOutlined: ImageVector,
 
-    iconFilled:ImageVector,
+    iconFilled: ImageVector,
 
-    badgeCount:Int = 0,
+    badgeCount: Int = 0,
 
-    onClick:()->Unit
+    onClick: () -> Unit
 
-){
-
-
-
+) {
 
 
     val animatedContentColor by animateColorAsState(
 
 
-
-        targetValue = if(selected)
+        targetValue = if (selected)
 
             Color.White
-
         else
 
             Color(0xFF8A95B5),
-
 
 
         animationSpec = tween(250),
@@ -1015,14 +1172,7 @@ fun NavItem(
         label = "Color"
 
 
-
     )
-
-
-
-
-
-
 
 
     Column(
@@ -1041,12 +1191,10 @@ fun NavItem(
 
                 indication = null
 
-            ){
-
+            ) {
 
 
                 onClick()
-
 
 
             },
@@ -1055,10 +1203,7 @@ fun NavItem(
 
         verticalArrangement = Arrangement.Center
 
-    ){
-
-
-
+    ) {
 
 
         BadgedBox(
@@ -1066,13 +1211,10 @@ fun NavItem(
             badge = {
 
 
-
-                if(badgeCount > 0){
-
+                if (badgeCount > 0) {
 
 
                     Badge {
-
 
 
                         Text(
@@ -1084,23 +1226,16 @@ fun NavItem(
                         )
 
 
-
                     }
-
 
 
                 }
 
 
-
             }
 
 
-
-        ){
-
-
-
+        ) {
 
 
             Crossfade(
@@ -1111,30 +1246,24 @@ fun NavItem(
 
                 label = "Icon"
 
-            ){
-
+            ) {
 
 
                 Icon(
 
 
-
-                    imageVector = if(it)
+                    imageVector = if (it)
 
                         iconFilled
-
                     else
 
                         iconOutlined,
 
 
-
                     contentDescription = label,
 
 
-
                     tint = animatedContentColor,
-
 
 
                     modifier = Modifier.size(
@@ -1144,22 +1273,13 @@ fun NavItem(
                     )
 
 
-
                 )
-
 
 
             }
 
 
-
         }
-
-
-
-
-
-
 
 
         Spacer(
@@ -1173,47 +1293,28 @@ fun NavItem(
         )
 
 
-
-
-
-
-
         Text(
-
 
 
             text = label,
 
 
-
             color = animatedContentColor,
-
 
 
             fontSize = AppTypography.BottomNavigationLabelSize,
 
 
-
             fontWeight = FontWeight.Medium
-
 
 
         )
 
 
-
     }
 
 
-
 }
-
-
-
-
-
-
-
 
 
 @Preview(
@@ -1227,20 +1328,16 @@ fun NavItem(
 )
 
 @Composable
-fun MainScreenPreview(){
+fun MainScreenPreview() {
 
 
-
-    NavHighTheme{
-
+    NavHighTheme {
 
 
         MainScreen()
 
 
-
     }
-
 
 
 }
