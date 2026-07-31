@@ -24,15 +24,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.example.navhigh.R
+import com.example.navhigh.ui.theme.AppDimensions
+import com.example.navhigh.ui.theme.AppTypography
+import com.example.navhigh.ui.theme.FeedTabsSelectedTextColor
+import com.example.navhigh.ui.theme.FeedTabsUnselectedTextColor
 import com.example.navhigh.ui.theme.TopHeaderAccentBlueColor
 
 @Composable
@@ -53,7 +57,7 @@ fun FeedTabs(
         label = "indicatorOffset"
     )
     val indicatorWidth by animateDpAsState(
-        targetValue = tabWidths[selectedTabIndex] ?: 44.dp,
+        targetValue = tabWidths[selectedTabIndex] ?: AppDimensions.FeedTabsIndicatorDefaultWidth,
         animationSpec = tween(durationMillis = 250),
         label = "indicatorWidth"
     )
@@ -61,7 +65,10 @@ fun FeedTabs(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .padding(
+                horizontal = AppDimensions.FeedTabsContainerHorizontalPadding,
+                vertical = AppDimensions.FeedTabsContainerVerticalPadding
+            )
     ) {
         Row(
             horizontalArrangement = Arrangement.Start
@@ -71,7 +78,10 @@ fun FeedTabs(
                 Column(
                     modifier = Modifier
                         .clickable { onTabSelected(index) }
-                        .padding(horizontal = 14.dp, vertical = 4.dp)
+                        .padding(
+                            horizontal = AppDimensions.FeedTabsItemHorizontalPadding,
+                            vertical = AppDimensions.FeedTabsItemVerticalPadding
+                        )
                         .onGloballyPositioned { coordinates ->
                             tabOffsets[index] = with(density) { coordinates.positionInParent().x.toDp() }
                             tabWidths[index] = with(density) { coordinates.size.width.toDp() }
@@ -80,23 +90,23 @@ fun FeedTabs(
                 ) {
                     Text(
                         text = tabName,
-                        color = if (isSelected) Color.White else Color.Gray,
-                        fontSize = 15.sp,
+                        color = if (isSelected) FeedTabsSelectedTextColor else FeedTabsUnselectedTextColor,
+                        fontSize = AppTypography.FeedTabsLabelTextSize,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                     )
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(6.dp))
+  //      Spacer(modifier = Modifier.height(AppDimensions.FeedTabsIndicatorSpacerHeight))
 
         // Single sliding indicator — uses start padding (not offset) to move smoothly between tabs
         Box(
             modifier = Modifier
                 .padding(PaddingValues(start = indicatorOffset))
-                .height(2.dp)
+                .height(AppDimensions.FeedTabsIndicatorHeight)
                 .width(indicatorWidth)
-                .background(TopHeaderAccentBlueColor, RoundedCornerShape(1.dp))
+                .background(TopHeaderAccentBlueColor, RoundedCornerShape(AppDimensions.FeedTabsIndicatorCornerRadius))
         )
     }
 }
@@ -106,7 +116,11 @@ fun FeedTabs(
 fun FeedTabsPreview() {
     var selectedIndex by remember { mutableStateOf(0) }
 
-    val tabs = listOf("For You", "Following", "Trending")
+    val tabs = listOf(
+        stringResource(id = R.string.feed_tab_for_you),
+        stringResource(id = R.string.feed_tab_following),
+        stringResource(id = R.string.feed_tab_trending)
+    )
 
     FeedTabs(
         tabs = tabs,

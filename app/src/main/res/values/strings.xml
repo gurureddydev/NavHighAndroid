@@ -3,7 +3,7 @@
     <!-- Birthday Screen -->
     <string name="birthday_title_part1">"What\'s your "</string>
     <string name="birthday_title_part2">date of birth</string>
-    <string name="birthday_title_part3">?</string>
+    <string name="birthday_title_part3">"?"</string>
     <string name="birthday_description">Use your own birthday, even if this account is for a business, a pet or something else. No one will see this unless you choose to share it. </string>
     <string name="birthday_why_link">Why do I need to provide my date of birth?</string>
     <string name="birthday_next_button">Next</string>
@@ -108,5 +108,24 @@
     <string name="contacts_sync_learn_more">Learn more.</string>
     <string name="contacts_sync_next_button">Next</string>
     <string name="contacts_sync_skip">Skip</string>
+
+
+//topheader//
+        <string name="top_header_nav_high_logo_description">NavHigh Logo</string>
+        <string name="top_header_title_nav">Nav</string>
+        <string name="top_header_title_high">High</string>
+        <string name="top_header_search_description">Search</string>
+        <string name="top_header_notifications_description">Notifications</string>
+        <string name="top_header_notification_badge_count">3</string>
+//Feedtabs//
+    <string name="feed_tab_for_you">For You</string>
+    <string name="feed_tab_following">Following</string>
+    <string name="feed_tab_trending">Trending</string>
+//Bottombar//
+    <string name="nav_home">Home</string>
+    <string name="nav_discover">Discover</string>
+    <string name="nav_create">Create</string>
+    <string name="nav_notifications">Notifications</string>
+    <string name="nav_profile">Profile</string>
 
 </resources>

@@ -44,3 +44,8 @@ const val FullNameDescriptionAlpha = 0.70f
 const val UserNameDescriptionAlpha = 0.70f
 const val UserNameLoadingDelayMs = 5000L
 const val OtpLength = 6
+
+
+//bottombar//
+const val BottomNavColorAnimationDurationMs = 250
+const val BottomNavIconCrossfadeDurationMs = 150

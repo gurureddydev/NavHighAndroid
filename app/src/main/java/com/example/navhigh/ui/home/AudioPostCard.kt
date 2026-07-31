@@ -4,16 +4,23 @@ package com.example.navhigh.ui.home
 
 import android.media.MediaPlayer
 import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.VerticalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -22,33 +29,33 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.layout
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.navhigh.R
-import com.example.navhigh.ui.theme.CardBgDark
-import com.example.navhigh.ui.theme.CustomBorderColor
-import com.example.navhigh.ui.theme.FollowBorderBlue
-import com.example.navhigh.ui.theme.PlayerSurfaceBg
-import com.example.navhigh.ui.theme.WaveformInactiveColor
+import com.example.navhigh.ui.commentsection.Comment
+import com.example.navhigh.ui.commentsection.CommentsSheetContent
+import com.example.navhigh.ui.commentsection.sampleComments
+import com.example.navhigh.ui.theme.BirthdayBgWhite
+import com.example.navhigh.ui.theme.ForgotPasswordBlue
+import com.example.navhigh.ui.theme.LoginBackground
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-
 
 
 // --- DATA STRUCTURE FOR PLAYBACK AUDIO TRACKS ---
@@ -66,29 +73,40 @@ data class AudioTrackItem(
     val accentColor: Color
 )
 
-// --- CONTINUOUS BACKGROUND CONTAINER & AUTO-ADVANCE COMPOSABLE ---
+// =====================================================================================
+// REELS-STYLE HOME SCREEN (this is the screen you should show for your Home tab)
+// Fixed header + full-screen swipeable VerticalPager feed + fixed bottom nav.
+// Only the current page plays; others are paused. Swipe up = next, swipe down = previous.
+// =====================================================================================
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun AutoAdvancingAudioFeed(
+fun ReelsHomeScreen(
     tracks: List<AudioTrackItem>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onProfileClick: (AudioTrackItem) -> Unit = {},
+    onCommentClick: (AudioTrackItem) -> Unit = {}
 ) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val listState = rememberLazyListState()
+    val pagerState = rememberPagerState(pageCount = { tracks.size })
 
-    var currentTrackIndex by remember { mutableIntStateOf(0) }
-    var isPlaying by remember { mutableStateOf(true) } // Automatically runs audio on open
+    var isPlaying by remember { mutableStateOf(true) }
     var currentPlaybackPosition by remember { mutableIntStateOf(0) }
-    var trackTotalDuration by remember { mutableIntStateOf(120000) }
+    var trackTotalDuration by remember { mutableIntStateOf(120_000) }
+    var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
+    var followedIds by remember { mutableStateOf(setOf<Int>()) }
+    val scope = rememberCoroutineScope()
 
-    // Re-instantiate/update player context explicitly when active target track index increments
-    val activeTrack = remember(currentTrackIndex, tracks) {
-        if (tracks.isNotEmpty()) tracks[currentTrackIndex] else null
+    // --- Comments bottom sheet state (Instagram-style), hoisted here so a
+    // single sheet overlays the whole pager instead of living inside each card ---
+    var commentsTrack by remember { mutableStateOf<AudioTrackItem?>(null) }
+    val commentsSheetState = rememberModalBottomSheetState()
+    val commentsByTrackId = remember { mutableStateMapOf<Int, List<Comment>>() }
+
+    val activeTrack = remember(pagerState.currentPage, tracks) {
+        tracks.getOrNull(pagerState.currentPage)
     }
 
-    var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
-
-    // Initialize player safely outside the recycled components
+    // Load + play whichever track is currently centered in the pager.
     LaunchedEffect(activeTrack) {
         if (activeTrack != null && activeTrack.audioResId != 0) {
             try {
@@ -97,65 +115,42 @@ fun AutoAdvancingAudioFeed(
 
                 mediaPlayer = MediaPlayer.create(context, activeTrack.audioResId).apply {
                     trackTotalDuration = duration
-                    seekTo(currentPlaybackPosition.coerceAtMost(duration))
-
+                    currentPlaybackPosition = 0
+                    seekTo(0)
                     setOnCompletionListener {
-                        // Forward tracking logic safely boundaries checked
-                        if (currentTrackIndex + 1 < tracks.size) {
-                            currentPlaybackPosition = 0
-                            currentTrackIndex += 1
-                            isPlaying = true
-                        } else {
-                            isPlaying = false
-                            seekTo(0)
-                            currentPlaybackPosition = 0
-                        }
+                        currentPlaybackPosition = 0
+                        seekTo(0)
+                        start() // loop the current reel
                     }
                 }
+                isPlaying = true
+                mediaPlayer?.start()
+            } catch (e: Exception) {
+                Log.e("ReelsHomeScreen", "Error initializing playback", e)
+            }
+        }
+    }
 
-                if (isPlaying) {
-                    mediaPlayer?.start()
+    // Poll playback position for the progress line while playing.
+    LaunchedEffect(isPlaying, mediaPlayer, pagerState.currentPage) {
+        while (isPlaying) {
+            try {
+                if (mediaPlayer?.isPlaying == true) {
+                    currentPlaybackPosition = mediaPlayer?.currentPosition ?: 0
                 }
             } catch (e: Exception) {
-                Log.e("AutoAdvancingAudioFeed", "Error initializing structural media element", e)
+                break
             }
+            delay(30)
         }
     }
 
-    // Handles smooth list layout updates automatically alongside active track adjustments
-    LaunchedEffect(currentTrackIndex) {
-        scope.launch {
-            listState.animateScrollToItem(currentTrackIndex)
-        }
-    }
-
-    // Local player clock syncer mechanism loop
-    LaunchedEffect(isPlaying, mediaPlayer, currentTrackIndex) {
-        if (isPlaying && mediaPlayer != null) {
-            while (isPlaying) {
-                try {
-                    if (mediaPlayer?.isPlaying == true) {
-                        currentPlaybackPosition = mediaPlayer?.currentPosition ?: 0
-                    }
-                } catch (e: Exception) {
-                    break
-                }
-                delay(30)
-            }
-        }
-    }
-
-    // Global toggle controller implementation hooks
     val togglePlayback: (Boolean) -> Unit = { playState ->
         isPlaying = playState
         try {
-            if (playState) {
-                mediaPlayer?.start()
-            } else {
-                mediaPlayer?.pause()
-            }
+            if (playState) mediaPlayer?.start() else mediaPlayer?.pause()
         } catch (e: Exception) {
-            Log.e("AutoAdvancingAudioFeed", "Error alternating local sound driver parameters", e)
+            Log.e("ReelsHomeScreen", "Error toggling playback", e)
         }
     }
 
@@ -165,437 +160,497 @@ fun AutoAdvancingAudioFeed(
                 mediaPlayer?.stop()
                 mediaPlayer?.release()
             } catch (e: Exception) {
-                Log.e("AutoAdvancingAudioFeed", "Failure tearing down service pipeline handles", e)
+                Log.e("ReelsHomeScreen", "Error releasing player", e)
             }
         }
     }
 
-    LazyColumn(
-        state = listState,
-        modifier = modifier.fillMaxSize().background(Color(0xFF02070D)),
-        contentPadding = PaddingValues(16.dp)
-    ) {
-        itemsIndexed(tracks) { index, track ->
-            val isActive = index == currentTrackIndex
+    // --- FEED AREA ONLY: full-bleed VerticalPager, one post per page ---
+    // Top bar, feed tabs, and bottom nav already live in HomeScreen, so this
+    // composable now renders just the swipeable reels feed itself.
+    // beyondViewportPageCount = 1 keeps only Previous, Current, and Next
+    // composed/in memory -- matches "Only Previous, Current and Next
+    // pages are kept in memory. Others are released" from the guide.
+    VerticalPager(
+        state = pagerState,
+        beyondViewportPageCount = 1,
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color(0xFF02070D))
+    ) { page ->
+        val track = tracks[page]
+        val isActive = page == pagerState.currentPage
 
-            AudioPostCardElegant(
-                profileName = track.profileName,
-                username = track.username,
-                timeAgo = track.timeAgo,
-                profileResId = track.profileResId,
-                title = track.title,
-                tags = track.tags,
-                artworkResId = track.artworkResId,
-                playsCount = track.playsCount,
-                accentColor = track.accentColor,
-                isGlobalPlaying = isActive && isPlaying,
-                currentPosition = if (isActive) currentPlaybackPosition else 0,
-                totalDuration = if (isActive) trackTotalDuration else 120000,
-                onPlayToggle = { playRequested ->
-                    if (isActive) {
-                        togglePlayback(playRequested)
-                    } else {
-                        // Jump completely contextually to a different card block selection
-                        currentPlaybackPosition = 0
-                        currentTrackIndex = index
-                        isPlaying = true
-                    }
+        AudioPostCardReel(
+            profileName = track.profileName,
+            username = track.username,
+            timeAgo = track.timeAgo,
+            profileResId = track.profileResId,
+            title = track.title,
+            tags = track.tags,
+            artworkResId = track.artworkResId,
+            playsCount = track.playsCount,
+            accentColor = track.accentColor,
+            isGlobalPlaying = isActive && isPlaying,
+            currentPosition = if (isActive) currentPlaybackPosition else 0,
+            totalDuration = if (isActive) trackTotalDuration else 120_000,
+            isFollowing = followedIds.contains(track.id),
+            onFollowClick = { followedIds = followedIds + track.id },
+            onUnfollowClick = { followedIds = followedIds - track.id },
+            onPlayToggle = { playRequested: Boolean ->
+                if (isActive) togglePlayback(playRequested)
+            },
+            onSeek = { seekTarget: Int ->
+                if (isActive) {
+                    currentPlaybackPosition = seekTarget
+                    mediaPlayer?.seekTo(seekTarget)
+                }
+            },
+            onProfileClick = { onProfileClick(track) },
+            onCommentClick = {
+                // Seed sample comments the first time this track's sheet is opened.
+                if (commentsByTrackId[track.id] == null) {
+                    commentsByTrackId[track.id] = sampleComments()
+                }
+                commentsTrack = track
+                onCommentClick(track)
+            },
+            modifier = Modifier.fillMaxSize()
+        )
+    }
+
+    // --- Comments bottom sheet overlay ---
+    commentsTrack?.let { track ->
+        ModalBottomSheet(
+            onDismissRequest = { commentsTrack = null },
+            sheetState = commentsSheetState,
+            containerColor = LoginBackground
+        ) {
+            CommentsSheetContent(
+                comments = commentsByTrackId[track.id] ?: emptyList<Comment>(),
+                onSendComment = { newText ->
+                    val newComment = Comment(
+                        id = (commentsByTrackId[track.id]?.maxOfOrNull { c: Comment -> c.id } ?: 0) + 1,
+                        username = "you",
+                        profileResId = track.profileResId,
+                        timeAgo = "now",
+                        text = newText,
+                        likeCount = 0
+                    )
+                    commentsByTrackId[track.id] =
+                        (commentsByTrackId[track.id] ?: emptyList<Comment>()) + newComment
                 },
-                onSeek = { seekTarget ->
-                    if (isActive) {
-                        currentPlaybackPosition = seekTarget
-                        mediaPlayer?.seekTo(seekTarget)
+                onCloseRequest = {
+                    scope.launch {
+                        commentsSheetState.hide()
+                    }.invokeOnCompletion {
+                        commentsTrack = null
                     }
                 }
             )
-            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
 
-// --- STATELESS UI HOISTED COMPOSABLE AUDIO POST CARD ---
-@OptIn(ExperimentalMaterial3Api::class)
+// --- FULL-SCREEN REELS-STYLE CARD (used inside VerticalPager on Home) ---
+// Media is TRUE full-bleed: the image fills the entire card, and everything
+// else (profile row, caption, hashtags, action rail, progress line) floats
+// on top of it over a bottom gradient scrim -- matching the NavHigh design.
 @Composable
-fun AudioPostCardElegant(
+fun AudioPostCardReel(
     profileName: String,
     username: String,
-    modifier: Modifier = Modifier,
-    timeAgo: String = "1h ago",
+    timeAgo: String,
     profileResId: Int,
     title: String,
     tags: String,
-    artworkResId: Int = R.drawable.ic_launcher_foreground,
+    artworkResId: Int,
     playsCount: String,
     initialLikes: Int = 1250,
     initialComments: Int = 84,
-    accentColor: Color = Color(0xFF00B2FE),
-    isGlobalPlaying: Boolean = false,
-    currentPosition: Int = 0,
-    totalDuration: Int = 120000,
-    isFollowing: Boolean = false,
-    onFollowClick: () -> Unit = {},
-    onUnfollowClick: () -> Unit = {},
-    onPlayToggle: (Boolean) -> Unit = {},
-    onSeek: (Int) -> Unit = {},
-    onProfileClick: () -> Unit = {},
-    onCommentClick: () -> Unit = {}
+    accentColor: Color,
+    isGlobalPlaying: Boolean,
+    currentPosition: Int,
+    totalDuration: Int,
+    isFollowing: Boolean,
+    onFollowClick: () -> Unit,
+    onUnfollowClick: () -> Unit,
+    onPlayToggle: (Boolean) -> Unit,
+    onSeek: (Int) -> Unit,
+    onProfileClick: () -> Unit,
+    onCommentClick: () -> Unit,
+    extraBottomPadding: Dp = 0.dp,
+    modifier: Modifier = Modifier
 ) {
     var isLiked by remember { mutableStateOf(false) }
     var likesCount by remember { mutableIntStateOf(initialLikes) }
     var isSaved by remember { mutableStateOf(false) }
-    var showOptionsMenu by remember { mutableStateOf(false) }
+    var savedCount by remember { mutableIntStateOf(181) }
+    var sendCount by remember { mutableIntStateOf(110) }
 
-    // Read locale in an observable way so recomposition happens correctly
-    val configuration = LocalConfiguration.current
-    val currentLocale = configuration.locales[0]
+    // Controls the brief center heart pop-in animation on double-tap.
+    var showDoubleTapHeart by remember { mutableStateOf(false) }
+    // Where the user actually double-tapped, so the heart pops up right there.
+    var doubleTapOffset by remember { mutableStateOf(Offset.Zero) }
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val heartSizePx = with(density) { 100.dp.toPx() }
+
+    LaunchedEffect(showDoubleTapHeart) {
+        if (showDoubleTapHeart) {
+            delay(650)
+            showDoubleTapHeart = false
+        }
+    }
 
     val progress = remember(currentPosition, totalDuration) {
         if (totalDuration > 0) (currentPosition.toFloat() / totalDuration.toFloat()).coerceIn(0f, 1f) else 0f
     }
 
-    Card(
+    // pointerInput(Unit) below only launches its gesture coroutine once, so without this
+    // the onTap lambda would keep reading a stale, first-composition value of isGlobalPlaying
+    // forever -- causing single taps to always send the same play/pause command instead of
+    // properly toggling each time. rememberUpdatedState keeps it pointing at the latest value.
+    val latestIsGlobalPlaying by rememberUpdatedState(isGlobalPlaying)
+
+    Box(
         modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = CardBgDark)
+            .fillMaxSize()
+            .background(Color(0xFF02070D))
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = {
+                        onPlayToggle(!latestIsGlobalPlaying)
+                    },
+                    onDoubleTap = { tapOffset ->
+                        // Double-tap always LIKES (never unlikes), same as Instagram --
+                        // only bump the count the first time it becomes liked.
+                        if (!isLiked) {
+                            isLiked = true
+                            likesCount++
+                        }
+                        doubleTapOffset = tapOffset
+                        showDoubleTapHeart = true
+                    }
+                )
+            }
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+        // Artwork image removed -- background is now a plain color.
+        // The only photo left on this screen is the small profile avatar below.
+
+        // Bottom gradient scrim so the overlaid text/icons stay readable.
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .fillMaxHeight(0.45f)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.85f))
+                    )
+                )
+        )
+
+        // Center play/pause glyph inside a translucent circle, fades in only while paused.
+        val playIconAlpha by animateFloatAsState(
+            targetValue = if (isGlobalPlaying) 0f else 1f,
+            label = "playIconAlpha"
+        )
+        Box(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .offset(y = (-90).dp)
+                .size(64.dp)
+                .alpha(playIconAlpha)
+                .background(Color.Black.copy(alpha = 0.35f), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = if (isGlobalPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(32.dp)
+            )
+        }
+
+        // --- Big heart that pops in right where the user double-tapped ---
+        AnimatedVisibility(
+            visible = showDoubleTapHeart,
+            enter = scaleIn(initialScale = 0.6f) + fadeIn(),
+            exit = scaleOut(targetScale = 1.2f) + fadeOut(),
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .offset {
+                    androidx.compose.ui.unit.IntOffset(
+                        (doubleTapOffset.x - heartSizePx / 2f).toInt(),
+                        (doubleTapOffset.y - heartSizePx / 2f).toInt()
+                    )
+                }
+        ) {
+            Icon(
+                imageVector = Icons.Default.Favorite,
+                contentDescription = null,
+                tint = ForgotPasswordBlue,
+                modifier = Modifier.size(100.dp)
+            )
+        }
+
+        // --- Right-side floating action rail ---
+        // Lowered further down the screen (smaller bottom padding) since
+        // there was a lot of empty space below it before.
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 14.dp, bottom = 48.dp + extraBottomPadding),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {ReelAction(
+            icon = if (isLiked) Icons.Default.Favorite else null,
+            iconRes = if (isLiked) null else R.drawable.heart,
+            tint = if (isLiked) ForgotPasswordBlue else BirthdayBgWhite,
+            count = likesCount
+        ) {
+            isLiked = !isLiked
+            if (isLiked) likesCount++ else likesCount--
+        }
+            ReelAction(
+                iconRes = R.drawable.comment,
+                tint = Color.White,
+                count = initialComments
+            ) { onCommentClick() }
+            ReelAction(
+                iconRes = R.drawable.share,
+                tint = Color(0xFFD9D9D9),
+                count = sendCount
+            ) { sendCount++ }
+            ReelAction(
+                iconRes = R.drawable.save,
+                tint = Color(0xFFD9D9D9),
+                count = savedCount
             ) {
+                isSaved = !isSaved
+                if (isSaved) savedCount++ else savedCount--
+            }
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Image(
+                    painter = painterResource(id = R.drawable.earphones),
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                    colorFilter = ColorFilter.tint(Color(0xFFD9D9D9)),
+                    modifier = Modifier.size(26.dp)
+                )
+                Spacer(Modifier.height(2.dp))
+                Text(playsCount, color = Color.White, fontSize = 11.sp)
+            }
+        }
+
+        // --- Bottom-left overlay: avatar, username, follow, caption, hashtags ---
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(start = 16.dp, end = 80.dp, bottom = 30.dp + extraBottomPadding)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Image(
                     painter = painterResource(id = profileResId),
                     contentDescription = null,
+                    contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .size(38.dp)
+                        .size(36.dp)
                         .clip(CircleShape)
-                        .clickable { onProfileClick() },
-                    contentScale = ContentScale.Crop
+                        .clickable { onProfileClick() }
                 )
-                Spacer(modifier = Modifier.width(10.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = profileName,
-                            color = Color.White,
-                            fontSize = 14.sp,
-                            lineHeight = 14.sp,
-                            style = LocalTextStyle.current.copy(
-                                platformStyle = PlatformTextStyle(includeFontPadding = false),
-                                lineHeightStyle = LineHeightStyle(
-                                    alignment = LineHeightStyle.Alignment.Center,
-                                    trim = LineHeightStyle.Trim.Both
-                                )
-                            ),
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Icon(Icons.Default.CheckCircle, null, tint = accentColor, modifier = Modifier.size(14.dp))
-                    }
-                    Text(
-                        text = "$username • $timeAgo",
-                        color = Color.Gray,
-                        fontSize = 11.sp,
-                        lineHeight = 11.sp,
-                        style = LocalTextStyle.current.copy(
-                            platformStyle = PlatformTextStyle(includeFontPadding = false),
-                            lineHeightStyle = LineHeightStyle(
-                                alignment = LineHeightStyle.Alignment.Center,
-                                trim = LineHeightStyle.Trim.Both
-                            )
-                        )
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                // --- FOLLOW BUTTON: state now hoisted; disappears once isFollowing is true ---
+                Spacer(Modifier.width(8.dp))
+                Text(profileName, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.width(4.dp))
+                Icon(Icons.Default.CheckCircle, null, tint = accentColor, modifier = Modifier.size(14.dp))
+                Spacer(Modifier.width(10.dp))
                 if (!isFollowing) {
                     OutlinedButton(
                         onClick = onFollowClick,
-                        modifier = Modifier
-                            .padding(bottom = 5.dp)
-                            .height(34.dp),
-                        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 0.dp),
+                        modifier = Modifier.height(28.dp),
+                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 0.dp),
                         shape = RoundedCornerShape(50),
-                        border = borderStroke(1.dp, FollowBorderBlue),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = Color.Transparent
-                        )
+                        border = borderStroke(1.dp, ForgotPasswordBlue),
                     ) {
-                        Text(
-                            text = "Follow",
-                            color = FollowBorderBlue,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
+                        Text("Follow", color = ForgotPasswordBlue, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                     }
-
-                    Spacer(modifier = Modifier.width(2.dp))
-                }
-
-                CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
-                    Box(
-                        modifier = Modifier
-                            .clickable { showOptionsMenu = true }
-                            .layout { measurable, constraints ->
-                                val placeable = measurable.measure(constraints)
-                                layout(placeable.width, placeable.height) {
-                                    placeable.placeRelative(14.dp.roundToPx(), 0)
-                                }
-                            }
-                            .padding(vertical = 6.dp)
+                } else {
+                    Button(
+                        onClick = onUnfollowClick,
+                        modifier = Modifier.height(28.dp),
+                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 0.dp),
+                        shape = RoundedCornerShape(50),
+                        colors = ButtonDefaults.buttonColors(containerColor = ForgotPasswordBlue),
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.MoreVert,
-                            contentDescription = null,
-                            tint = Color.Gray,
-                            modifier = Modifier.size(24.dp)
-                        )
-
-                        DropdownMenu(
-                            expanded = showOptionsMenu,
-                            onDismissRequest = { showOptionsMenu = false },
-                            modifier = Modifier.background(CardBgDark)
-                        ) {
-                            if (isFollowing) {
-                                DropdownMenuItem(
-                                    text = { Text("Unfollow", color = Color.White) },
-                                    onClick = {
-                                        onUnfollowClick()
-                                        showOptionsMenu = false
-                                    }
-                                )
-                            }
-                            DropdownMenuItem(
-                                text = { Text("Report", color = Color.White) },
-                                onClick = { showOptionsMenu = false }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Share", color = Color.White) },
-                                onClick = { showOptionsMenu = false }
-                            )
-                        }
+                        Text("Following", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
-            Text(text = title, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Normal)
-            Text(text = tags, color = accentColor, fontSize = 13.sp, fontWeight = FontWeight.Normal)
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(PlayerSurfaceBg, RoundedCornerShape(16.dp))
-                    .border(1.dp, CustomBorderColor, RoundedCornerShape(16.dp))
-                    .padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Image(
-                        painter = painterResource(id = artworkResId),
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(60.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                    )
-                    Box(
-                        modifier = Modifier
-                            .size(50.dp)
-                            .background(Color.Black.copy(alpha = 0.6f), CircleShape)
-                            .clickable { onPlayToggle(!isGlobalPlaying) },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = if (isGlobalPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                Column(modifier = Modifier.weight(1f)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = String.format(currentLocale, "%02d:%02d", (currentPosition / 1000) / 60, (currentPosition / 1000) % 60),
-                            color = accentColor,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.Headset,
-                                contentDescription = null,
-                                tint = accentColor,
-                                modifier = Modifier.size(11.dp)
-                            )
-                            Spacer(modifier = Modifier.width(3.dp))
-                            Text(
-                                text = playsCount,
-                                color = accentColor,
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    CompactSeekableWaveform(
-                        progress = progress,
-                        activeColor = accentColor,
-                        onSeek = { targetProgress ->
-                            val seekTarget = (targetProgress * totalDuration).toInt()
-                            onSeek(seekTarget)
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(32.dp)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(
-                    modifier = Modifier.clickable {
-                        isLiked = !isLiked
-                        if (isLiked) likesCount++ else likesCount--
-                    },
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                        contentDescription = null,
-                        tint = if (isLiked) accentColor else Color.Gray,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(text = likesCount.toString(), color = Color.Gray, fontSize = 12.sp)
-                }
-
-                Row(
-                    modifier = Modifier.clickable { onCommentClick() },
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.chat),
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp),
-                        colorFilter = ColorFilter.tint(Color.Gray)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(text = initialComments.toString(), color = Color.Gray, fontSize = 12.sp)
-                }
-
-                Image(painter = painterResource(id = R.drawable.refresh), contentDescription = null, modifier = Modifier.size(18.dp), colorFilter = ColorFilter.tint(Color.Gray))
-                Image(painter = painterResource(id = R.drawable.send), contentDescription = null, modifier = Modifier.size(18.dp), colorFilter = ColorFilter.tint(Color.Gray))
-
-                Icon(
-                    imageVector = if (isSaved) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
-                    contentDescription = null,
-                    tint = if (isSaved) accentColor else Color.Gray,
-                    modifier = Modifier
-                        .size(18.dp)
-                        .clickable { isSaved = !isSaved }
-                )
-            }
+            Spacer(Modifier.height(8.dp))
+            Text(title, color = Color.White, fontSize = 12.sp, maxLines = 1
+                ,overflow = TextOverflow.Ellipsis)
+            Spacer(Modifier.height(2.dp))
+            Text(tags, color = accentColor, fontSize = 10.sp)
         }
+
+        // --- Thin white progress line pinned to the bottom edge of the post ---
+        // Matches the spec exactly: a plain line, no dot, no icon, resets on swipe.
+        // Still draggable to seek.
+        ReelProgressLine(
+            progress = progress,
+            onSeek = { targetProgress -> onSeek((targetProgress * totalDuration).toInt()) },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 8.dp + extraBottomPadding)
+        )
     }
 }
 
 @Composable
-fun CompactSeekableWaveform(
+private fun ReelAction(
+    icon: ImageVector? = null,
+    tint: Color,
+    count: Int?,
+    iconRes: Int? = null,
+    onClick: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.clickable(
+            indication = null,
+            interactionSource = remember { MutableInteractionSource() }
+        ) { onClick() }
+    ) {
+        if (iconRes != null) {
+            Image(
+                painter = painterResource(id = iconRes),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                colorFilter = ColorFilter.tint(tint),
+                modifier = Modifier.size(24.dp)
+            )
+        } else {
+            Icon(icon!!, null, tint = tint, modifier = Modifier.size(24.dp))
+        }
+        if (count != null) {
+            Spacer(Modifier.height(0.dp))
+            Text(formatReelCount(count), color = Color.White, fontSize = 10.sp)
+        }
+    }
+}
+
+private fun formatReelCount(count: Int): String =
+    if (count >= 1000) "%.1fK".format(count / 1000f) else count.toString()
+
+/**
+ * Thin single-line progress indicator, Instagram-Reels style: no waveform,
+ * no dot, no icon -- just a line that fills left-to-right as playback
+ * advances and resets when the user swipes to the next post. Still
+ * draggable to seek within the current post.
+ */
+@Composable
+private fun ReelProgressLine(
     progress: Float,
-    activeColor: Color,
     onSeek: (Float) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val barCount = 30
-    val waveAmplitudes = remember { floatArrayOf(0.3f,0.4f,0.6f,0.8f,0.5f,0.3f,0.6f,0.9f,0.7f,0.4f,0.5f,0.8f,0.4f,0.3f,0.6f,0.7f,0.9f,0.5f,0.3f,0.4f,0.7f,0.8f,0.5f,0.3f,0.6f,0.5f,0.4f,0.3f,0.2f,0.1f) }
     var width by remember { mutableFloatStateOf(1f) }
-
-    val pointerInputModifier = Modifier.pointerInput(Unit) {
-        detectDragGestures(
-            onDragStart = { offset -> onSeek((offset.x / width).coerceIn(0f, 1f)) },
-            onDrag = { change, _ -> onSeek((change.position.x / width).coerceIn(0f, 1f)) }
-        )
-    }
-
     Canvas(
-        modifier = modifier.then(pointerInputModifier)
+        modifier = modifier
+            .height(3.dp)
+            .pointerInput(Unit) {
+                detectDragGestures(
+                    onDragStart = { offset -> onSeek((offset.x / width).coerceIn(0f, 1f)) },
+                    onDrag = { change, _ -> onSeek((change.position.x / width).coerceIn(0f, 1f)) }
+                )
+            }
     ) {
         width = size.width
-        val canvasHeight = size.height
-        val midY = canvasHeight / 2f
+        val trackY = size.height / 2f
 
-        val gapSpace = 3.dp.toPx()
-        val fixedBarWidth = (width - (gapSpace * (barCount - 1))) / barCount
-
-        for (i in 0 until barCount) {
-            val barX = i * (fixedBarWidth + gapSpace) + (fixedBarWidth / 2f)
-            val calculatedHeight = midY * waveAmplitudes[i]
-            val isFilled = barX <= width * progress
-
-            drawLine(
-                color = if (isFilled) activeColor else WaveformInactiveColor,
-                start = Offset(barX, midY - calculatedHeight),
-                end = Offset(barX, midY + calculatedHeight),
-                strokeWidth = fixedBarWidth,
-                cap = StrokeCap.Round
-            )
-        }
+        drawLine(
+            color = Color.White.copy(alpha = 0.3f),
+            start = Offset(0f, trackY),
+            end = Offset(size.width, trackY),
+            strokeWidth = size.height,
+            cap = StrokeCap.Round
+        )
+        drawLine(
+            color = Color.White,
+            start = Offset(0f, trackY),
+            end = Offset(size.width * progress, trackY),
+            strokeWidth = size.height,
+            cap = StrokeCap.Round
+        )
     }
 }
 
-private fun borderStroke(width: androidx.compose.ui.unit.Dp, color: Color) = androidx.compose.foundation.BorderStroke(width, color)
+private fun borderStroke(width: Dp, color: Color) = androidx.compose.foundation.BorderStroke(width, color)
 
-// --- INDIVIDUAL COMPOSABLE HOISTED RENDERING PREVIEWS ---
+// Sample data so ReelsHomeScreen has something to render immediately.
+// Swap this out for your real data source (ViewModel / repository / API).
+fun sampleAudioTracks(): List<AudioTrackItem> = listOf(
+    AudioTrackItem(
+        id = 2,
+        profileName = "EchoFlow",
+        username = "@echoflow",
+        timeAgo = "3h ago",
+        profileResId = R.drawable.logo,
+        title = "Stop making excuses. Your future self is watching you. Wake up and grind! 🔥💪",
+        tags = "#motivation #mindset #discipline #success",
+        artworkResId = R.drawable.logo,
+        audioResId = 0,
+        playsCount = "12.5K",
+        accentColor = Color(0xFF00FFCC)
+    ),
+    AudioTrackItem(
+        id = 3,
+        profileName = "Arjun Beats",
+        username = "@arjunbeats",
+        timeAgo = "5h ago",
+        profileResId = R.drawable.pro1_img,
+        title = "Unleash your full potential. Consistency beats talent every single day! ⚡👑",
+        tags = "#motivation #mindset #grind #hustle",
+        artworkResId = R.drawable.pro1_img,
+        audioResId = 0,
+        playsCount = "4.1K",
+        accentColor = Color(0xFF00B2FE)
+    ),
+    AudioTrackItem(
+        id = 4,
+        profileName = "MusicLab",
+        username = "@musiclab",
+        timeAgo = "1d ago",
+        profileResId = R.drawable.music,
+        title = "Epic orchestral movements ⚔️🔥",
+        tags = "#epic #soundtrack #orchestral #cinematic",
+        artworkResId = R.drawable.music,
+        audioResId = 0,
+        playsCount = "892",
+        accentColor = Color(0xFFFF5722)
+    )
+)
 
-@Preview(name = "Preview Card 1: Ivana Voice", showBackground = true, backgroundColor = 0xFF02070D)
+// --- PREVIEWS: all four reels, plus the full scrollable feed ---
+
+@Preview(name = "Preview: Full Reels Home Feed (all 4 posts, scrollable)", showBackground = true, backgroundColor = 0xFF02070D)
 @Composable
-fun AudioPostCardIvanaPreview() {
-    AudioPostCardElegant(
-        profileName = "Ivana Voice",
-        username = "@ivanavoice",
-        timeAgo = "1hago",
-        profileResId = R.drawable.ivana,
-        title = "Testing out the new high-fidelity microphone setup. Sounds incredibly clean! 🎙️🎧",
-        tags = "#podcast #audio #engineering #miccheck",
-        artworkResId = R.drawable.ivana,
-        playsCount = "1.2K",
-        accentColor = Color(0xFFFFC107),
-        isGlobalPlaying = true,
-        currentPosition = 42000,
-        totalDuration = 180000
+fun ReelsHomeScreenPreview() {
+    ReelsHomeScreen(
+        tracks = sampleAudioTracks()
     )
 }
 
-@Preview(name = "Preview Card 2: EchoFlow", showBackground = true, backgroundColor = 0xFF02070D)
+@Preview(name = "Preview: Reels Full Screen - EchoFlow", showBackground = true, backgroundColor = 0xFF02070D)
 @Composable
-fun AudioPostCardEchoFlowPreview() {
-    AudioPostCardElegant(
+fun AudioPostCardReelEchoFlowPreview() {
+    AudioPostCardReel(
         profileName = "EchoFlow",
         username = "@echoflow",
+        timeAgo = "3h ago",
         profileResId = R.drawable.logo,
         title = "Stop making excuses. Your future self is watching you. Wake up and grind! 🔥💪",
         tags = "#motivation #mindset #discipline #success",
@@ -604,34 +659,52 @@ fun AudioPostCardEchoFlowPreview() {
         accentColor = Color(0xFF00FFCC),
         isGlobalPlaying = false,
         currentPosition = 0,
-        totalDuration = 60000
+        totalDuration = 60000,
+        isFollowing = false,
+        onFollowClick = {},
+        onUnfollowClick = {},
+        onPlayToggle = {},
+        onSeek = {},
+        onProfileClick = {},
+        onCommentClick = {},
+        modifier = Modifier.fillMaxSize()
     )
 }
 
-@Preview(name = "Preview Card 3: Arjun Beats", showBackground = true, backgroundColor = 0xFF02070D)
+@Preview(name = "Preview: Reels Full Screen - Arjun Beats", showBackground = true, backgroundColor = 0xFF02070D)
 @Composable
-fun AudioPostCardArjunPreview() {
-    AudioPostCardElegant(
+fun AudioPostCardReelArjunPreview() {
+    AudioPostCardReel(
         profileName = "Arjun Beats",
         username = "@arjunbeats",
+        timeAgo = "1h ago",
         profileResId = R.drawable.pro1_img,
         title = "Unleash your full potential. Consistency beats talent every single day! ⚡👑",
         tags = "#motivation #mindset #grind #hustle",
         artworkResId = R.drawable.pro1_img,
         playsCount = "4.1K",
         accentColor = Color(0xFF00B2FE),
-        isGlobalPlaying = false,
-        currentPosition = 0,
-        totalDuration = 240000
+        isGlobalPlaying = true,
+        currentPosition = 42000,
+        totalDuration = 240000,
+        isFollowing = false,
+        onFollowClick = {},
+        onUnfollowClick = {},
+        onPlayToggle = {},
+        onSeek = {},
+        onProfileClick = {},
+        onCommentClick = {},
+        modifier = Modifier.fillMaxSize()
     )
 }
 
-@Preview(name = "Preview Card 4: MusicLab", showBackground = true, backgroundColor = 0xFF02070D)
+@Preview(name = "Preview: Reels Full Screen - MusicLab", showBackground = true, backgroundColor = 0xFF02070D)
 @Composable
-fun AudioPostCardMusicLabPreview() {
-    AudioPostCardElegant(
+fun AudioPostCardReelMusicLabPreview() {
+    AudioPostCardReel(
         profileName = "MusicLab",
         username = "@musiclab",
+        timeAgo = "1d ago",
         profileResId = R.drawable.music,
         title = "Epic orchestral movements ⚔️🔥",
         tags = "#epic #soundtrack #orchestral #cinematic",
@@ -640,6 +713,14 @@ fun AudioPostCardMusicLabPreview() {
         accentColor = Color(0xFFFF5722),
         isGlobalPlaying = false,
         currentPosition = 0,
-        totalDuration = 300000
+        totalDuration = 300000,
+        isFollowing = false,
+        onFollowClick = {},
+        onUnfollowClick = {},
+        onPlayToggle = {},
+        onSeek = {},
+        onProfileClick = {},
+        onCommentClick = {},
+        modifier = Modifier.fillMaxSize()
     )
 }

@@ -90,7 +90,7 @@ object AppTypography {
 
     // Bottom Navigation Typography
 
-    val BottomNavigationLabelSize = 10.sp
+    val BottomNavigationLabelSize = 8.sp
 
     val NotificationBadgeTextSize = 9.sp
 
@@ -142,7 +142,9 @@ object AppTypography {
     val SplashLoadingLetterSpacing = 1.sp
     val TermsAgreementBodyTextSize = 14.sp
      val lineheight=25.sp
-
+    val TopHeaderTitleTextSize = 20.sp
+    val TopHeaderBadgeTextSize = 10.sp
+    val FeedTabsLabelTextSize = 15.sp
 
 }
 

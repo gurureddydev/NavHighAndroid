@@ -59,6 +59,8 @@ dependencies {
     implementation("androidx.concurrent:concurrent-futures-ktx:1.1.0")
 // Lifecycle compose (Fixes deprecated LocalLifecycleOwner error)
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.0")
+    implementation("androidx.navigation:navigation-compose:2.8.4")
+
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

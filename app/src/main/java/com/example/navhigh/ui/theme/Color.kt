@@ -190,6 +190,8 @@ val LoginWhiteText = Color.White
 
 val ForgotPasswordBlue = Color(0xFF0090FF)
 val BirthdayBgBlack = Color(0xFF03070C)
+val BirthdayBgWhite = Color(0xFFFFFFFF)
+
 val BirthdayDialogBg = Color(0xFF020508)
 val BirthdayCyanAccent = Color(0xFF29C4F0)
 val BirthdayTextWhite = Color(0xFFF2F5F8)
@@ -298,6 +300,12 @@ val ContactsSyncBodyColor = Color(0xFF9CA3AF)
 val ContactsSyncIconColor = Color(0xFF3B82F6)
 val LearnMoreLinkColor = Color(0xFF3B82F6)
 val SkipTextColor = Color(0xFF3B82F6)
+val FeedTabsSelectedTextColor = Color.White
+val FeedTabsUnselectedTextColor = Color.Gray
+val BottomNavBackground = Color(0xFF040A18)
+val BottomNavDividerColor = Color(0xFF102040)
+val BottomNavSelectedColor = Color.White
+val BottomNavUnselectedColor = Color(0xFF8A95B5)
 
 
 

@@ -8,6 +8,9 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -85,15 +88,23 @@ fun StoryItem1(image: Int, name: String) {
 
             // Check if this item is the user's personal story entry slot
             if (name == "Your Story") {
-                Image(
-                    painter = painterResource(id = R.drawable.plus),
-                    contentDescription = "Add Story",
+                // Using a Box with Icon to replicate the plus button look while avoiding the missing R.drawable.plus issue
+                Box(
                     modifier = Modifier
-                        .size(20.dp) // Proportional badge sizing matching reference screenshots
-                        .background(Color(0xFF030712), CircleShape) // Seamless cutout overlap base ring background
-                        .padding(1.dp)
-                        .clip(CircleShape)
-                )
+                        .size(20.dp)
+                        .background(Color(0xFF030712), CircleShape)
+                        .padding(2.dp)
+                        .background(PrimaryBlue, CircleShape)
+                        .clip(CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add Story",
+                        tint = Color.White,
+                        modifier = Modifier.size(12.dp)
+                    )
+                }
             }
         }
 

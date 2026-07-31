@@ -344,17 +344,17 @@ object AppDimensions {
 
     // Main Screen / Bottom Navigation
 
-    val BottomNavigationHeight = 76.dp
+    val BottomNavigationHeight = 60.dp
 
     val BottomNavigationHorizontalPadding = 5.dp
 
-    val BottomNavigationDividerThickness = 1.dp
+    val BottomNavigationDividerThickness = 0.dp
 
     val BottomNavigationIconSize = 20.dp
 
     val CreateIconSize = 30.dp
 
-    val BottomNavigationItemSpacing = 4.dp
+    val BottomNavigationItemSpacing = 1.dp
 
 
     val OtpBoxWidth = 48.dp
@@ -493,6 +493,20 @@ object AppDimensions {
 
     val accountselectionscreeenspacing = 40.dp
     val followscreen= 20.dp
+
+    val TopHeaderHorizontalPadding = 16.dp
+    val TopHeaderVerticalPadding = 8.dp
+    val TopHeaderLogoSize = 38.dp
+    val TopHeaderLogoBottomPadding = 6.dp
+    val TopHeaderSearchIconSize = 24.dp
+    val FeedTabsContainerHorizontalPadding = 8.dp
+    val FeedTabsContainerVerticalPadding = 4.dp
+    val FeedTabsItemHorizontalPadding = 14.dp
+    val FeedTabsItemVerticalPadding = 4.dp
+    val FeedTabsIndicatorSpacerHeight = 2.dp
+    val FeedTabsIndicatorHeight = 2.dp
+    val FeedTabsIndicatorDefaultWidth = 44.dp
+    val FeedTabsIndicatorCornerRadius = 1.dp
 
 
 }
