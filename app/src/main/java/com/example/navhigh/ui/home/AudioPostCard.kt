@@ -10,12 +10,10 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -35,7 +33,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -49,13 +46,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.navhigh.R
 import com.example.navhigh.ui.commentsection.Comment
-import com.example.navhigh.ui.commentsection.CommentsSheetContent
+import com.example.navhigh.ui.commentsection.CommentsBottomSheet
 import com.example.navhigh.ui.commentsection.sampleComments
 import com.example.navhigh.ui.theme.BirthdayBgWhite
 import com.example.navhigh.ui.theme.ForgotPasswordBlue
-import com.example.navhigh.ui.theme.LoginBackground
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 
 // --- DATA STRUCTURE FOR PLAYBACK AUDIO TRACKS ---
@@ -94,12 +89,13 @@ fun ReelsHomeScreen(
     var trackTotalDuration by remember { mutableIntStateOf(120_000) }
     var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
     var followedIds by remember { mutableStateOf(setOf<Int>()) }
-    val scope = rememberCoroutineScope()
 
     // --- Comments bottom sheet state (Instagram-style), hoisted here so a
-    // single sheet overlays the whole pager instead of living inside each card ---
+    // single sheet overlays the whole pager instead of living inside each card.
+    // CommentsBottomSheet (Popup-based, single layer, no Dialog window) is used
+    // instead of Compose's built-in ModalBottomSheet -- that's what actually
+    // fixed the stray dark "ghost" box left behind after closing the sheet. ---
     var commentsTrack by remember { mutableStateOf<AudioTrackItem?>(null) }
-    val commentsSheetState = rememberModalBottomSheetState()
     val commentsByTrackId = remember { mutableStateMapOf<Int, List<Comment>>() }
 
     val activeTrack = remember(pagerState.currentPage, tracks) {
@@ -166,11 +162,6 @@ fun ReelsHomeScreen(
     }
 
     // --- FEED AREA ONLY: full-bleed VerticalPager, one post per page ---
-    // Top bar, feed tabs, and bottom nav already live in HomeScreen, so this
-    // composable now renders just the swipeable reels feed itself.
-    // beyondViewportPageCount = 1 keeps only Previous, Current, and Next
-    // composed/in memory -- matches "Only Previous, Current and Next
-    // pages are kept in memory. Others are released" from the guide.
     VerticalPager(
         state = pagerState,
         beyondViewportPageCount = 1,
@@ -208,7 +199,6 @@ fun ReelsHomeScreen(
             },
             onProfileClick = { onProfileClick(track) },
             onCommentClick = {
-                // Seed sample comments the first time this track's sheet is opened.
                 if (commentsByTrackId[track.id] == null) {
                     commentsByTrackId[track.id] = sampleComments()
                 }
@@ -220,42 +210,35 @@ fun ReelsHomeScreen(
     }
 
     // --- Comments bottom sheet overlay ---
-    commentsTrack?.let { track ->
-        ModalBottomSheet(
-            onDismissRequest = { commentsTrack = null },
-            sheetState = commentsSheetState,
-            containerColor = LoginBackground
-        ) {
-            CommentsSheetContent(
-                comments = commentsByTrackId[track.id] ?: emptyList<Comment>(),
-                onSendComment = { newText ->
-                    val newComment = Comment(
-                        id = (commentsByTrackId[track.id]?.maxOfOrNull { c: Comment -> c.id } ?: 0) + 1,
-                        username = "you",
-                        profileResId = track.profileResId,
-                        timeAgo = "now",
-                        text = newText,
-                        likeCount = 0
-                    )
-                    commentsByTrackId[track.id] =
-                        (commentsByTrackId[track.id] ?: emptyList<Comment>()) + newComment
-                },
-                onCloseRequest = {
-                    scope.launch {
-                        commentsSheetState.hide()
-                    }.invokeOnCompletion {
-                        commentsTrack = null
-                    }
-                }
+    // CommentsBottomSheet owns its own open/close (slide) animation internally
+    // and only calls onDismiss once that exit animation has fully finished, so
+    // there's exactly one layer animating out -- no leftover dark box.
+    val currentCommentsTrack = commentsTrack
+    CommentsBottomSheet(
+        show = currentCommentsTrack != null,
+        comments = currentCommentsTrack?.let { commentsByTrackId[it.id] } ?: emptyList(),
+        onSendComment = { newText ->
+            val track = currentCommentsTrack ?: return@CommentsBottomSheet
+            val newComment = Comment(
+                id = (commentsByTrackId[track.id]?.maxOfOrNull { c: Comment -> c.id } ?: 0) + 1,
+                username = "you",
+                profileResId = track.profileResId,
+                timeAgo = "now",
+                text = newText,
+                likeCount = 0
             )
-        }
-    }
+            commentsByTrackId[track.id] =
+                (commentsByTrackId[track.id] ?: emptyList<Comment>()) + newComment
+        },
+        onDismiss = { commentsTrack = null }
+    )
 }
 
 // --- FULL-SCREEN REELS-STYLE CARD (used inside VerticalPager on Home) ---
-// Media is TRUE full-bleed: the image fills the entire card, and everything
-// else (profile row, caption, hashtags, action rail, progress line) floats
-// on top of it over a bottom gradient scrim -- matching the NavHigh design.
+// Media is TRUE full-bleed: the ironman.png artwork image fills the entire
+// card, and everything else (profile row, caption, hashtags, action rail)
+// floats on top of it over a bottom gradient scrim -- matching the NavHigh
+// design.
 @Composable
 fun AudioPostCardReel(
     profileName: String,
@@ -288,9 +271,7 @@ fun AudioPostCardReel(
     var savedCount by remember { mutableIntStateOf(181) }
     var sendCount by remember { mutableIntStateOf(110) }
 
-    // Controls the brief center heart pop-in animation on double-tap.
     var showDoubleTapHeart by remember { mutableStateOf(false) }
-    // Where the user actually double-tapped, so the heart pops up right there.
     var doubleTapOffset by remember { mutableStateOf(Offset.Zero) }
     val density = androidx.compose.ui.platform.LocalDensity.current
     val heartSizePx = with(density) { 100.dp.toPx() }
@@ -302,14 +283,6 @@ fun AudioPostCardReel(
         }
     }
 
-    val progress = remember(currentPosition, totalDuration) {
-        if (totalDuration > 0) (currentPosition.toFloat() / totalDuration.toFloat()).coerceIn(0f, 1f) else 0f
-    }
-
-    // pointerInput(Unit) below only launches its gesture coroutine once, so without this
-    // the onTap lambda would keep reading a stale, first-composition value of isGlobalPlaying
-    // forever -- causing single taps to always send the same play/pause command instead of
-    // properly toggling each time. rememberUpdatedState keeps it pointing at the latest value.
     val latestIsGlobalPlaying by rememberUpdatedState(isGlobalPlaying)
 
     Box(
@@ -322,8 +295,6 @@ fun AudioPostCardReel(
                         onPlayToggle(!latestIsGlobalPlaying)
                     },
                     onDoubleTap = { tapOffset ->
-                        // Double-tap always LIKES (never unlikes), same as Instagram --
-                        // only bump the count the first time it becomes liked.
                         if (!isLiked) {
                             isLiked = true
                             likesCount++
@@ -334,8 +305,13 @@ fun AudioPostCardReel(
                 )
             }
     ) {
-        // Artwork image removed -- background is now a plain color.
-        // The only photo left on this screen is the small profile avatar below.
+        // --- Full-bleed background artwork image (ironman.png from res/drawable) ---
+        Image(
+            painter = painterResource(id = R.drawable.ironman),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
 
         // Bottom gradient scrim so the overlaid text/icons stay readable.
         Box(
@@ -395,23 +371,22 @@ fun AudioPostCardReel(
         }
 
         // --- Right-side floating action rail ---
-        // Lowered further down the screen (smaller bottom padding) since
-        // there was a lot of empty space below it before.
         Column(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(end = 14.dp, bottom = 48.dp + extraBottomPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {ReelAction(
-            icon = if (isLiked) Icons.Default.Favorite else null,
-            iconRes = if (isLiked) null else R.drawable.heart,
-            tint = if (isLiked) ForgotPasswordBlue else BirthdayBgWhite,
-            count = likesCount
         ) {
-            isLiked = !isLiked
-            if (isLiked) likesCount++ else likesCount--
-        }
+            ReelAction(
+                icon = if (isLiked) Icons.Default.Favorite else null,
+                iconRes = if (isLiked) null else R.drawable.heart,
+                tint = if (isLiked) ForgotPasswordBlue else BirthdayBgWhite,
+                count = likesCount
+            ) {
+                isLiked = !isLiked
+                if (isLiked) likesCount++ else likesCount--
+            }
             ReelAction(
                 iconRes = R.drawable.comment,
                 tint = Color.White,
@@ -493,19 +468,6 @@ fun AudioPostCardReel(
             Spacer(Modifier.height(2.dp))
             Text(tags, color = accentColor, fontSize = 10.sp)
         }
-
-        // --- Thin white progress line pinned to the bottom edge of the post ---
-        // Matches the spec exactly: a plain line, no dot, no icon, resets on swipe.
-        // Still draggable to seek.
-        ReelProgressLine(
-            progress = progress,
-            onSeek = { targetProgress -> onSeek((targetProgress * totalDuration).toInt()) },
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 8.dp + extraBottomPadding)
-        )
     }
 }
 
@@ -545,49 +507,6 @@ private fun ReelAction(
 private fun formatReelCount(count: Int): String =
     if (count >= 1000) "%.1fK".format(count / 1000f) else count.toString()
 
-/**
- * Thin single-line progress indicator, Instagram-Reels style: no waveform,
- * no dot, no icon -- just a line that fills left-to-right as playback
- * advances and resets when the user swipes to the next post. Still
- * draggable to seek within the current post.
- */
-@Composable
-private fun ReelProgressLine(
-    progress: Float,
-    onSeek: (Float) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    var width by remember { mutableFloatStateOf(1f) }
-    Canvas(
-        modifier = modifier
-            .height(3.dp)
-            .pointerInput(Unit) {
-                detectDragGestures(
-                    onDragStart = { offset -> onSeek((offset.x / width).coerceIn(0f, 1f)) },
-                    onDrag = { change, _ -> onSeek((change.position.x / width).coerceIn(0f, 1f)) }
-                )
-            }
-    ) {
-        width = size.width
-        val trackY = size.height / 2f
-
-        drawLine(
-            color = Color.White.copy(alpha = 0.3f),
-            start = Offset(0f, trackY),
-            end = Offset(size.width, trackY),
-            strokeWidth = size.height,
-            cap = StrokeCap.Round
-        )
-        drawLine(
-            color = Color.White,
-            start = Offset(0f, trackY),
-            end = Offset(size.width * progress, trackY),
-            strokeWidth = size.height,
-            cap = StrokeCap.Round
-        )
-    }
-}
-
 private fun borderStroke(width: Dp, color: Color) = androidx.compose.foundation.BorderStroke(width, color)
 
 // Sample data so ReelsHomeScreen has something to render immediately.
@@ -601,7 +520,7 @@ fun sampleAudioTracks(): List<AudioTrackItem> = listOf(
         profileResId = R.drawable.logo,
         title = "Stop making excuses. Your future self is watching you. Wake up and grind! 🔥💪",
         tags = "#motivation #mindset #discipline #success",
-        artworkResId = R.drawable.logo,
+        artworkResId = R.drawable.ironman,
         audioResId = 0,
         playsCount = "12.5K",
         accentColor = Color(0xFF00FFCC)
@@ -654,7 +573,7 @@ fun AudioPostCardReelEchoFlowPreview() {
         profileResId = R.drawable.logo,
         title = "Stop making excuses. Your future self is watching you. Wake up and grind! 🔥💪",
         tags = "#motivation #mindset #discipline #success",
-        artworkResId = R.drawable.logo,
+        artworkResId = R.drawable.ironman,
         playsCount = "12.5K",
         accentColor = Color(0xFF00FFCC),
         isGlobalPlaying = false,

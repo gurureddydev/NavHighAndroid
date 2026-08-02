@@ -2,15 +2,25 @@
 
 package com.example.navhigh.ui.commentsection
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Favorite
@@ -23,17 +33,31 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.example.navhigh.R
 import com.example.navhigh.ui.theme.ForgotPasswordBlue
 import com.example.navhigh.ui.theme.LoginBackground
+import kotlin.math.roundToInt
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 // --- DATA STRUCTURE FOR A SINGLE COMMENT ---
@@ -48,7 +72,31 @@ data class Comment(
 )
 
 // Quick-react emojis shown above the input bar, Instagram-style.
-private val QuickReactEmojis = listOf("❤️", "🙌", "🔥", "👏", "😢", "😍", "😮", "😂")
+private val QuickReactEmojis = listOf("❤️", "🙌", "🔥", "👏", "😢", "😍", "😮", "😂", "😊", "🙏", "👍", "🎉")
+
+// Spring used to settle the sheet height / pull-to-close offset -- tuned
+// to feel like Instagram's own sheet: quick, slightly bouncy, never
+// sluggish or abrupt.
+private val SheetHeightSpring = spring<Float>(
+    dampingRatio = Spring.DampingRatioLowBouncy,
+    stiffness = Spring.StiffnessMediumLow
+)
+
+// How far (in dp) the user must pull down from the top of the comment
+// list before releasing counts as "close the sheet" instead of
+// "snap back to normal position".
+private val PullToCloseThreshold = 110.dp
+
+// Fling velocity (px/sec) thresholds -- a forceful swipe crosses these
+// even if the distance dragged was small, matching Instagram.
+private const val ForceExpandVelocity = -900f   // fast swipe UP on the handle
+private const val ForceCollapseVelocity = 900f  // fast swipe DOWN on the handle
+private const val ForceCloseVelocity = 900f     // fast swipe DOWN on the list -> close
+
+// How long the exit slide takes -- kept in sync with SheetHeightSpring's
+// feel, used to time when we tell the caller it's safe to remove this
+// composable from composition entirely.
+private const val ExitAnimationDurationMs = 250L
 
 // Sample comments so the sheet has something to render immediately.
 // Swap this out for your real data source (ViewModel / repository / API).
@@ -147,7 +195,7 @@ private fun CommentItem(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 6.dp),
+            .padding(horizontal = 16.dp, vertical = 6.dp),
         verticalAlignment = Alignment.Top
     ) {
         Image(
@@ -166,14 +214,14 @@ private fun CommentItem(
                 Text(
                     text = comment.username,
                     color = Color.White,
-                    fontSize = 11.sp,
+                    fontSize = 10.sp,
                     fontWeight = FontWeight.SemiBold
                 )
                 Spacer(Modifier.width(6.dp))
                 Text(
                     text = comment.timeAgo,
                     color = Color(0xFF8E8E8E),
-                    fontSize = 10.sp
+                    fontSize = 9.sp
                 )
             }
 
@@ -182,16 +230,16 @@ private fun CommentItem(
             Text(
                 text = comment.text,
                 color = Color.White,
-                fontSize = 12.sp
+                fontSize = 11.sp
             )
 
-            Spacer(Modifier.height(1.dp))
+            Spacer(Modifier.height(0.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = "Reply",
                     color = Color(0xFF8E8E8E),
-                    fontSize = 10.sp,
+                    fontSize = 9.sp,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.clickable(
                         indication = null,
@@ -204,7 +252,7 @@ private fun CommentItem(
                     Text(
                         text = "View ${comment.replyCount} more replies",
                         color = Color(0xFF8E8E8E),
-                        fontSize = 10.sp,
+                        fontSize = 9.sp,
                         modifier = Modifier.clickable(
                             indication = null,
                             interactionSource = remember { MutableInteractionSource() }
@@ -229,141 +277,122 @@ private fun CommentItem(
                 imageVector = if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                 contentDescription = null,
                 tint = if (isLiked) ForgotPasswordBlue else Color(0xFF8E8E8E),
-                modifier = Modifier.size(14.dp)
+                modifier = Modifier.size(16.dp)
             )
             Spacer(Modifier.height(2.dp))
             Text(
                 text = (comment.likeCount + if (isLiked) 1 else 0).toString(),
                 color = Color(0xFF8E8E8E),
-                fontSize = 9.sp
+                fontSize = 8.sp
             )
         }
     }
 }
 
 /**
- * Instagram-style comments bottom sheet content. Caller owns the
- * ModalBottomSheet's sheetState (same pattern as PhotoScreen's picker
- * sheet). Header, dividers, emoji row, and input bar are fixed outside the
- * LazyColumn so only the comment list itself scrolls.
- *
- * The header/dividers/emoji row/input bar never move from ordinary
- * scrolling -- including fast flings, and including simply landing on the
- * first comment via momentum. The ONE exception is a deliberate pull:
- * once you're on the first comment and drag down past a small distance
- * (or release with downward fling velocity), [onCloseRequest] is called
- * directly, which plays the sheet's own smooth hide() animation through
- * to full completion. This is a guaranteed full close every time -- it
- * does not depend on ModalBottomSheet's own internal dismiss threshold,
- * which could otherwise decide to stall or bounce back to Expanded
- * partway through. See [scrollConnection] below for exactly how the pull
- * gesture is detected.
+ * Instagram-style comments bottom sheet content. Handle bar + "Responses"
+ * label + emoji row + input bar are all fixed outside the LazyColumn so
+ * only the comment list scrolls.
  */
 @Composable
 fun CommentsSheetContent(
     comments: List<Comment>,
     onSendComment: (String) -> Unit,
     modifier: Modifier = Modifier,
-    // No default value here on purpose. This closes the sheet -- if some
-    // call site forgets to pass it, that used to silently do NOTHING on
-    // swipe (an empty default lambda), which is exactly the "swipe does
-    // nothing at all" symptom that's hard to debug. Making it required
-    // turns a silent runtime no-op into a compile error instead, at every
-    // call site including previews.
-    onCloseRequest: () -> Unit
+    onCloseRequest: () -> Unit = {}
 ) {
     var commentText by remember { mutableStateOf("") }
     var likedIds by remember { mutableStateOf(setOf<Int>()) }
 
-    // fillMaxHeight(0.5f) needs a bounded parent height to size against, but the
-    // ModalBottomSheet content slot sizes to content by default -- so we compute
-    // a real dp height from the screen instead. This guarantees the sheet always
-    // renders at a fixed, visible size, with the comment list scrolling inside it
-    // while the emoji row and input bar stay fixed at the bottom.
     val configuration = LocalConfiguration.current
-    val sheetHeight = (configuration.screenHeightDp * 0.5f).dp
+    val density = LocalDensity.current
+    val collapsedHeight = (configuration.screenHeightDp * 0.5f).dp
+    val expandedHeight = (configuration.screenHeightDp * 0.9f).dp
+    val collapsedHeightPx = with(density) { collapsedHeight.toPx() }
+    val expandedHeightPx = with(density) { expandedHeight.toPx() }
+    val pullToCloseThresholdPx = with(density) { PullToCloseThreshold.toPx() }
+
+    val sheetHeightPx = remember { Animatable(collapsedHeightPx) }
+    val dragOffsetPx = remember { Animatable(0f) }
+    val scope = rememberCoroutineScope()
+    val sheetHeight: Dp = with(density) { sheetHeightPx.value.toDp() }
+
     val commentsListState = rememberLazyListState()
-    val density = androidx.compose.ui.platform.LocalDensity.current
 
-    // Letting the drag/fling bubble up and leaving ModalBottomSheet's own
-    // internal threshold decide whether to finish closing or bounce back
-    // to Expanded is what caused the "closes halfway then stalls / snaps
-    // back" behavior -- that threshold is an internal Material3 decision
-    // we don't control, and it doesn't always resolve to "fully closed."
-    //
-    // To GUARANTEE a full close every time, we stop leaving that decision
-    // to the sheet's physics. The moment a real downward pull (past a
-    // small distance) or a downward fling is detected while at the top of
-    // the list, we call onCloseRequest() directly, which runs
-    // sheetState.hide() -- Material3's own smooth slide-to-closed
-    // animation, played to full completion. There's no partial/undecided
-    // state anymore: once triggered, it always finishes fully closed.
-    // IMPORTANT: onCloseRequest (== dismissFully in the caller) is a new
-    // lambda instance on every recomposition of the caller. Previously
-    // this was used directly as a `remember` key below, which meant ANY
-    // unrelated recomposition (typing a character, liking a comment, etc.)
-    // silently recreated the whole gesture tracker below and reset its
-    // in-progress pull distance / fling-triggered flag back to zero --
-    // so a real swipe's progress could get wiped out mid-gesture and
-    // never reach the close threshold at all. rememberUpdatedState fixes
-    // this: the tracker object stays the SAME stable instance across
-    // recompositions (so its accumulated progress survives), while this
-    // always exposes the latest onCloseRequest lambda to call.
-    val currentOnCloseRequest = rememberUpdatedState(onCloseRequest)
+    val settleHeightToNearest: (flingVelocityY: Float) -> Unit = { flingVelocityY ->
+        val settleTo = when {
+            flingVelocityY <= ForceExpandVelocity -> expandedHeightPx
+            flingVelocityY >= ForceCollapseVelocity -> collapsedHeightPx
+            else -> {
+                val midPointPx = (collapsedHeightPx + expandedHeightPx) / 2f
+                if (sheetHeightPx.value >= midPointPx) expandedHeightPx else collapsedHeightPx
+            }
+        }
+        scope.launch {
+            sheetHeightPx.animateTo(
+                targetValue = settleTo,
+                animationSpec = SheetHeightSpring
+            )
+        }
+    }
 
-    val scrollConnection = remember(commentsListState) {
-        // Raw pixel distance of downward pull accumulated while at the top.
-        // Resets whenever the pull sequence breaks (scrolled back up, or
-        // not at top).
-        var pullAccumulatorPx = 0f
-        var closeTriggered = false
-        // Kept small and responsive -- this only needs to distinguish "a
-        // real deliberate pull" from incidental touch jitter, not act as a
-        // strict physics threshold.
-        val closeDistanceThresholdPx = with(density) { 28.dp.toPx() }
-        val closeFlingVelocityThresholdPxPerSec = with(density) { 400.dp.toPx() }
+    val settlePullToClose: (flingVelocityY: Float) -> Unit = { flingVelocityY ->
+        val pulledFarEnough = dragOffsetPx.value > pullToCloseThresholdPx
+        val flungFastEnough = flingVelocityY > ForceCloseVelocity
+        if (pulledFarEnough || flungFastEnough) {
+            // Snap the local pull offset back to 0 immediately and let the
+            // caller's own exit animation (Material's hide() or the Popup's
+            // slideOut, whichever wraps this) be the ONLY thing that
+            // animates the close -- exactly one motion, not two stacked
+            // slide-downs (which is what caused the stray dark "ghost"
+            // box to appear after closing).
+            scope.launch { dragOffsetPx.snapTo(0f) }
+            onCloseRequest()
+        } else {
+            scope.launch {
+                dragOffsetPx.animateTo(
+                    targetValue = 0f,
+                    animationSpec = SheetHeightSpring
+                )
+            }
+        }
+    }
 
+    val pullToCloseConnection = remember {
         object : NestedScrollConnection {
+            override fun onPreScroll(
+                available: Offset,
+                source: NestedScrollSource
+            ): Offset {
+                if (dragOffsetPx.value > 0f) {
+                    val newOffset = (dragOffsetPx.value + available.y).coerceAtLeast(0f)
+                    val consumedY = newOffset - dragOffsetPx.value
+                    scope.launch { dragOffsetPx.snapTo(newOffset) }
+                    return Offset(0f, consumedY)
+                }
+                val listAtTop = commentsListState.firstVisibleItemIndex == 0 &&
+                        commentsListState.firstVisibleItemScrollOffset == 0
+                if (available.y > 0f && listAtTop) {
+                    scope.launch { dragOffsetPx.snapTo(dragOffsetPx.value + available.y) }
+                    return Offset(0f, available.y)
+                }
+                return Offset.Zero
+            }
+
             override fun onPostScroll(
                 consumed: Offset,
                 available: Offset,
-                source: androidx.compose.ui.input.nestedscroll.NestedScrollSource
+                source: NestedScrollSource
             ): Offset {
-                val atTop = !commentsListState.canScrollBackward
-                val draggingDown = available.y > 0f
-                val isActiveDrag = source == androidx.compose.ui.input.nestedscroll.NestedScrollSource.Drag
-
-                if (atTop && draggingDown && isActiveDrag) {
-                    pullAccumulatorPx += available.y
-                    if (!closeTriggered && pullAccumulatorPx >= closeDistanceThresholdPx) {
-                        closeTriggered = true
-                        currentOnCloseRequest.value()
-                    }
-                } else {
-                    pullAccumulatorPx = 0f
-                    closeTriggered = false
-                }
-
-                // Fully consumed either way -- the list/header/footer never
-                // visually move from this; closing is driven entirely by
-                // onCloseRequest() -> sheetState.hide() above.
                 return available
             }
 
-            override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
-                val atTop = !commentsListState.canScrollBackward
-                val flingingDown = available.y > 0f
-
-                if (atTop && flingingDown && !closeTriggered &&
-                    available.y >= closeFlingVelocityThresholdPxPerSec
-                ) {
-                    closeTriggered = true
-                    currentOnCloseRequest.value()
+            override suspend fun onPreFling(available: Velocity): Velocity {
+                if (dragOffsetPx.value > 0f) {
+                    settlePullToClose(available.y)
+                    return available
                 }
-
-                pullAccumulatorPx = 0f
-                closeTriggered = false
-                return available
+                return Velocity.Zero
             }
         }
     }
@@ -372,17 +401,77 @@ fun CommentsSheetContent(
         modifier = modifier
             .fillMaxWidth()
             .height(sheetHeight)
-            .nestedScroll(scrollConnection)
+            .offset { IntOffset(0, dragOffsetPx.value.roundToInt()) }
+            .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+            .background(LoginBackground)
     ) {
-        HorizontalDivider(color = Color(0xFF2A2A2A), thickness = 0.5.dp)
+        val handleVelocityTracker = remember { VelocityTracker() }
+        // No visible bar drawn here anymore -- both bars are gone. This Box
+        // still exists purely as an invisible touch/drag zone: dragging
+        // up/down here still resizes the sheet between collapsed/expanded
+        // height, and dragging down past the threshold (or flinging down)
+        // still closes the sheet, exactly as before -- there's just
+        // nothing drawn on screen for it anymore.
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(20.dp)
+                .pointerInput(collapsedHeightPx, expandedHeightPx) {
+                    detectVerticalDragGestures(
+                        onDragStart = { handleVelocityTracker.resetTracking() },
+                        onVerticalDrag = { change, dragAmount ->
+                            change.consume()
+                            handleVelocityTracker.addPosition(
+                                change.uptimeMillis,
+                                change.position
+                            )
+                            val unclamped = sheetHeightPx.value - dragAmount
+                            val clamped = unclamped.coerceIn(collapsedHeightPx, expandedHeightPx)
+                            scope.launch { sheetHeightPx.snapTo(clamped) }
 
-        // Only this LazyColumn scrolls -- header above and emoji/input bar
-        // below are outside of it, so they stay fixed in place.
+                            if (unclamped < collapsedHeightPx) {
+                                val excess = collapsedHeightPx - unclamped
+                                scope.launch {
+                                    dragOffsetPx.snapTo((dragOffsetPx.value + excess).coerceAtLeast(0f))
+                                }
+                            }
+                        },
+                        onDragEnd = {
+                            val velocityY = handleVelocityTracker.calculateVelocity().y
+                            if (dragOffsetPx.value > 0f) {
+                                settlePullToClose(velocityY)
+                            } else {
+                                settleHeightToNearest(velocityY)
+                            }
+                        },
+                        onDragCancel = {
+                            if (dragOffsetPx.value > 0f) {
+                                settlePullToClose(0f)
+                            } else {
+                                settleHeightToNearest(0f)
+                            }
+                        }
+                    )
+                }
+        )
+
+        Text(
+            text = "Responses",
+            color = Color.White,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp)
+        )
+
         LazyColumn(
             state = commentsListState,
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
+                .nestedScroll(pullToCloseConnection)
         ) {
             items(comments, key = { it.id }) { comment ->
                 CommentItem(
@@ -399,121 +488,106 @@ fun CommentsSheetContent(
             }
         }
 
-        HorizontalDivider(color = Color(0xFF2A2A2A), thickness = 0.5.dp)
-
-        // Quick-react emoji row -- fixed, outside the LazyColumn
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            QuickReactEmojis.forEach { emoji ->
-                Text(
-                    text = emoji,
-                    fontSize = 20.sp,
-                    modifier = Modifier.clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }
-                    ) { commentText += emoji }
-                )
-            }
-        }
-
-        // Input row -- fixed, outside the LazyColumn
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
-                .padding(vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.logo),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
+            Row(
                 modifier = Modifier
-                    .size(32.dp)
-                    .clip(CircleShape)
-            )
-
-            Spacer(Modifier.width(10.dp))
-
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .clip(RoundedCornerShape24)
-                    .background(Color(0xFF1C1C1E))
-                    .padding(horizontal = 14.dp, vertical = 10.dp)
+                    .fillMaxWidth()
+                    .horizontalScroll(androidx.compose.foundation.rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                if (commentText.isEmpty()) {
+                QuickReactEmojis.forEach { emoji ->
                     Text(
-                        text = "Join the conversation...",
-                        color = Color(0xFF8E8E8E),
-                        fontSize = 12.sp
-                    )
-                }
-                androidx.compose.foundation.text.BasicTextField(
-                    value = commentText,
-                    onValueChange = { commentText = it },
-                    textStyle = androidx.compose.ui.text.TextStyle(
-                        color = Color.White,
-                        fontSize = 12.sp
-                    ),
-                    singleLine = true,
-                    cursorBrush = androidx.compose.ui.graphics.SolidColor(Color.White),
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-
-            Spacer(Modifier.width(8.dp))
-
-            if (commentText.isNotBlank()) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.Send,
-                    contentDescription = "Send",
-                    tint = ForgotPasswordBlue,
-                    modifier = Modifier
-                        .size(24.dp)
-                        .clickable(
+                        text = emoji,
+                        fontSize = 20.sp,
+                        modifier = Modifier.clickable(
                             indication = null,
                             interactionSource = remember { MutableInteractionSource() }
-                        ) {
-                            onSendComment(commentText.trim())
-                            commentText = ""
-                        }
+                        ) { commentText += emoji }
+                    )
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.logo),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(CircleShape)
                 )
+
+                Spacer(Modifier.width(10.dp))
+
+                Box(
+                    contentAlignment = Alignment.CenterStart,
+                    modifier = Modifier
+                        .weight(1f)
+                        .heightIn(min = 40.dp)
+                        .clip(RoundedCornerShape24)
+                        .background(Color(0xFF1C1C1E))
+                        .padding(horizontal = 14.dp, vertical = 10.dp)
+                ) {
+                    if (commentText.isEmpty()) {
+                        Text(
+                            text = "Join the conversation...",
+                            color = Color(0xFF8E8E8E),
+                            fontSize = 11.sp
+                        )
+                    }
+                    androidx.compose.foundation.text.BasicTextField(
+                        value = commentText,
+                        onValueChange = { commentText = it },
+                        textStyle = androidx.compose.ui.text.TextStyle(
+                            color = Color.White,
+                            fontSize = 11.sp
+                        ),
+                        singleLine = true,
+                        cursorBrush = androidx.compose.ui.graphics.SolidColor(Color.White),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                Spacer(Modifier.width(8.dp))
+
+                if (commentText.isNotBlank()) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.Send,
+                        contentDescription = "Send",
+                        tint = ForgotPasswordBlue,
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }
+                            ) {
+                                onSendComment(commentText.trim())
+                                commentText = ""
+                            }
+                    )
+                }
             }
         }
     }
 }
 
-private val RoundedCornerShape24 =
-    androidx.compose.foundation.shape.RoundedCornerShape(24.dp)
+private val RoundedCornerShape24 = RoundedCornerShape(24.dp)
 
 /**
- * Call this from wherever you show the comments (e.g. a button's onClick).
- * It owns the ModalBottomSheet + sheetState + open/close state for you.
- *
- * Closing (tap outside, system back, or the pull-down-at-top gesture from
- * CommentsSheetContent) always runs the sheet's own hide() animation to
- * full completion BEFORE removing the composable -- see [dismissFully]
- * below. Wiring onDismissRequest straight to the caller's onDismiss can
- * pull the sheet out of composition mid-animation, which looks like the
- * sheet stopping and cutting off halfway instead of sliding all the way
- * closed.
- *
- * Usage:
- *   var showComments by remember { mutableStateOf(false) }
- *   Button(onClick = { showComments = true }) { Text("Comments") }
- *   CommentsBottomSheet(
- *       show = showComments,
- *       comments = sampleComments(),
- *       onSendComment = { text -> /* add to your comments list */ },
- *       onDismiss = { showComments = false }
- *   )
+ * Uses a Popup instead of ModalBottomSheet's Dialog -- no window dim, no
+ * built-in scrim, no predictive-back preview, nothing that could show a
+ * dark layer behind the sheet on close.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CommentsBottomSheet(
     show: Boolean,
@@ -523,47 +597,91 @@ fun CommentsBottomSheet(
 ) {
     if (!show) return
 
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val scope = rememberCoroutineScope()
+    var visible by remember { mutableStateOf(false) }
 
-    // Drives a full, un-interrupted close: animate the sheet's own hide()
-    // to completion FIRST, and only call onDismiss() (which removes this
-    // composable from composition, via the `if (!show) return` above) once
-    // that animation has actually finished. Wiring onDismissRequest
-    // straight to onDismiss can pull the composable out mid-animation --
-    // that's what was causing the sheet to visually stop and cut off
-    // halfway instead of sliding all the way closed.
+    // Hide the system navigation bar while this sheet is open, and restore
+    // it the moment the sheet is dismissed.
+    val view = LocalView.current
+    DisposableEffect(Unit) {
+        fun findActivity(context: android.content.Context): android.app.Activity? {
+            var ctx = context
+            while (ctx is android.content.ContextWrapper) {
+                if (ctx is android.app.Activity) return ctx
+                ctx = ctx.baseContext
+            }
+            return ctx as? android.app.Activity
+        }
+
+        val activity = findActivity(view.context)
+        val insetsController = activity?.window?.let { WindowCompat.getInsetsController(it, view) }
+        insetsController?.let { controller ->
+            controller.hide(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
+            controller.systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+        onDispose {
+            insetsController?.show(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
+        }
+    }
+
+    // Slide in on first composition.
+    LaunchedEffect(Unit) {
+        visible = true
+    }
+
     val dismissFully: () -> Unit = {
-        scope.launch {
-            sheetState.hide()
-        }.invokeOnCompletion {
+        visible = false
+    }
+
+    // Once the exit animation has had time to finish, tell the caller
+    // it's safe to stop composing this (i.e. flip their `show` state off).
+    LaunchedEffect(visible) {
+        if (!visible) {
+            delay(ExitAnimationDurationMs)
             onDismiss()
         }
     }
 
-    ModalBottomSheet(
+    Popup(
+        alignment = Alignment.BottomCenter,
         onDismissRequest = dismissFully,
-        sheetState = sheetState,
-        containerColor = LoginBackground,
-        // Important: no dragHandle here -- CommentsSheetContent already
-        // draws its own "X comments" title as the fixed top row. Adding
-        // Material's default drag handle on top would give you two headers.
-        dragHandle = null
-    ) {
-        CommentsSheetContent(
-            comments = comments,
-            onSendComment = { text ->
-                onSendComment(text)
-            },
-            onCloseRequest = dismissFully
+        properties = PopupProperties(
+            focusable = true,
+            dismissOnBackPress = true,
+            dismissOnClickOutside = true,
+            clippingEnabled = true,
+            usePlatformDefaultWidth = false
         )
+    ) {
+        BackHandler(enabled = show) {
+            dismissFully()
+        }
+
+        // This outer Box is always full-screen and never itself animates.
+        // That keeps the Popup window a fixed size for its whole lifetime,
+        // avoiding a resizing-window artifact.
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Transparent),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            AnimatedVisibility(
+                visible = visible,
+                enter = slideInVertically(initialOffsetY = { fullHeight -> fullHeight }),
+                exit = slideOutVertically(targetOffsetY = { fullHeight -> fullHeight })
+            ) {
+                CommentsSheetContent(
+                    comments = comments,
+                    onSendComment = { text -> onSendComment(text) },
+                    onCloseRequest = dismissFully
+                )
+            }
+        }
     }
 }
 
 // --- PREVIEW ---
-// CommentsSheetContent normally renders inside a ModalBottomSheet with
-// containerColor = LoginBackground, so the preview wraps it in the same
-// background to match how it'll actually look on device.
 @androidx.compose.ui.tooling.preview.Preview(
     name = "Preview: Comments Sheet",
     showBackground = true,
@@ -579,8 +697,7 @@ private fun CommentsSheetContentPreview() {
     ) {
         CommentsSheetContent(
             comments = sampleComments(),
-            onSendComment = {},
-            onCloseRequest = {} // preview only -- nothing to close here
+            onSendComment = {}
         )
     }
 }
