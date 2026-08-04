@@ -92,9 +92,12 @@ fun ReelsHomeScreen(
 
     // --- Comments bottom sheet state (Instagram-style), hoisted here so a
     // single sheet overlays the whole pager instead of living inside each card.
-    // CommentsBottomSheet (Popup-based, single layer, no Dialog window) is used
-    // instead of Compose's built-in ModalBottomSheet -- that's what actually
-    // fixed the stray dark "ghost" box left behind after closing the sheet. ---
+    // CommentsBottomSheet is a plain in-window overlay (no Popup/Dialog) --
+    // which is exactly why it now needs to be a sibling of the pager inside
+    // ONE shared Box below (see the wrapping Box in the layout section):
+    // without that shared Box, the pager and the sheet would just be laid
+    // out one after another by whatever container calls ReelsHomeScreen,
+    // instead of stacking on top of each other. ---
     var commentsTrack by remember { mutableStateOf<AudioTrackItem?>(null) }
     val commentsByTrackId = remember { mutableStateMapOf<Int, List<Comment>>() }
 
@@ -103,15 +106,24 @@ fun ReelsHomeScreen(
     }
 
     // Load + play whichever track is currently centered in the pager.
+    // Always stop/release whatever was playing BEFORE deciding whether the
+    // new page even has audio -- otherwise scrolling from a track with
+    // audio to one without leaves the old track playing forever, since the
+    // stop/release call used to live inside the "has audio" check.
     LaunchedEffect(activeTrack) {
+        try {
+            mediaPlayer?.stop()
+        } catch (e: Exception) {
+            // Can throw if the player was never prepared/started -- safe to ignore.
+        }
+        mediaPlayer?.release()
+        mediaPlayer = null
+        currentPlaybackPosition = 0
+
         if (activeTrack != null && activeTrack.audioResId != 0) {
             try {
-                mediaPlayer?.stop()
-                mediaPlayer?.release()
-
                 mediaPlayer = MediaPlayer.create(context, activeTrack.audioResId).apply {
                     trackTotalDuration = duration
-                    currentPlaybackPosition = 0
                     seekTo(0)
                     setOnCompletionListener {
                         currentPlaybackPosition = 0
@@ -124,6 +136,8 @@ fun ReelsHomeScreen(
             } catch (e: Exception) {
                 Log.e("ReelsHomeScreen", "Error initializing playback", e)
             }
+        } else {
+            trackTotalDuration = 120_000
         }
     }
 
@@ -161,77 +175,83 @@ fun ReelsHomeScreen(
         }
     }
 
-    // --- FEED AREA ONLY: full-bleed VerticalPager, one post per page ---
-    VerticalPager(
-        state = pagerState,
-        beyondViewportPageCount = 1,
-        modifier = modifier
-            .fillMaxSize()
-            .background(Color(0xFF02070D))
-    ) { page ->
-        val track = tracks[page]
-        val isActive = page == pagerState.currentPage
+    // --- Pager and comments sheet MUST share one Box so the sheet overlays
+    // the reel instead of pushing/squeezing it out of the layout. ---
+    Box(modifier = modifier.fillMaxSize()) {
+        // --- FEED AREA: full-bleed VerticalPager, one post per page ---
+        // userScrollEnabled is explicitly false while the comments sheet is
+        // open, so the pager can never contend with the sheet for a drag
+        // gesture -- it's fully, officially disabled at the pager level.
+        VerticalPager(
+            state = pagerState,
+            beyondViewportPageCount = 1,
+            userScrollEnabled = commentsTrack == null,
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFF02070D))
+        ) { page ->
+            val track = tracks[page]
+            val isActive = page == pagerState.currentPage
 
-        AudioPostCardReel(
-            profileName = track.profileName,
-            username = track.username,
-            timeAgo = track.timeAgo,
-            profileResId = track.profileResId,
-            title = track.title,
-            tags = track.tags,
-            artworkResId = track.artworkResId,
-            playsCount = track.playsCount,
-            accentColor = track.accentColor,
-            isGlobalPlaying = isActive && isPlaying,
-            currentPosition = if (isActive) currentPlaybackPosition else 0,
-            totalDuration = if (isActive) trackTotalDuration else 120_000,
-            isFollowing = followedIds.contains(track.id),
-            onFollowClick = { followedIds = followedIds + track.id },
-            onUnfollowClick = { followedIds = followedIds - track.id },
-            onPlayToggle = { playRequested: Boolean ->
-                if (isActive) togglePlayback(playRequested)
+            AudioPostCardReel(
+                profileName = track.profileName,
+                username = track.username,
+                timeAgo = track.timeAgo,
+                profileResId = track.profileResId,
+                title = track.title,
+                tags = track.tags,
+                artworkResId = track.artworkResId,
+                playsCount = track.playsCount,
+                accentColor = track.accentColor,
+                isGlobalPlaying = isActive && isPlaying,
+                currentPosition = if (isActive) currentPlaybackPosition else 0,
+                totalDuration = if (isActive) trackTotalDuration else 120_000,
+                isFollowing = followedIds.contains(track.id),
+                onFollowClick = { followedIds = followedIds + track.id },
+                onUnfollowClick = { followedIds = followedIds - track.id },
+                onPlayToggle = { playRequested: Boolean ->
+                    if (isActive) togglePlayback(playRequested)
+                },
+                onSeek = { seekTarget: Int ->
+                    if (isActive) {
+                        currentPlaybackPosition = seekTarget
+                        mediaPlayer?.seekTo(seekTarget)
+                    }
+                },
+                onProfileClick = { onProfileClick(track) },
+                onCommentClick = {
+                    if (commentsByTrackId[track.id] == null) {
+                        commentsByTrackId[track.id] = sampleComments()
+                    }
+                    commentsTrack = track
+                    onCommentClick(track)
+                },
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+
+        // --- Comments bottom sheet overlay -- sits ON TOP of the pager
+        // above, inside the same Box, same window. ---
+        val currentCommentsTrack = commentsTrack
+        CommentsBottomSheet(
+            show = currentCommentsTrack != null,
+            comments = currentCommentsTrack?.let { commentsByTrackId[it.id] } ?: emptyList(),
+            onSendComment = { newText ->
+                val track = currentCommentsTrack ?: return@CommentsBottomSheet
+                val newComment = Comment(
+                    id = (commentsByTrackId[track.id]?.maxOfOrNull { c: Comment -> c.id } ?: 0) + 1,
+                    username = "you",
+                    profileResId = track.profileResId,
+                    timeAgo = "now",
+                    text = newText,
+                    likeCount = 0
+                )
+                commentsByTrackId[track.id] =
+                    (commentsByTrackId[track.id] ?: emptyList<Comment>()) + newComment
             },
-            onSeek = { seekTarget: Int ->
-                if (isActive) {
-                    currentPlaybackPosition = seekTarget
-                    mediaPlayer?.seekTo(seekTarget)
-                }
-            },
-            onProfileClick = { onProfileClick(track) },
-            onCommentClick = {
-                if (commentsByTrackId[track.id] == null) {
-                    commentsByTrackId[track.id] = sampleComments()
-                }
-                commentsTrack = track
-                onCommentClick(track)
-            },
-            modifier = Modifier.fillMaxSize()
+            onDismiss = { commentsTrack = null }
         )
     }
-
-    // --- Comments bottom sheet overlay ---
-    // CommentsBottomSheet owns its own open/close (slide) animation internally
-    // and only calls onDismiss once that exit animation has fully finished, so
-    // there's exactly one layer animating out -- no leftover dark box.
-    val currentCommentsTrack = commentsTrack
-    CommentsBottomSheet(
-        show = currentCommentsTrack != null,
-        comments = currentCommentsTrack?.let { commentsByTrackId[it.id] } ?: emptyList(),
-        onSendComment = { newText ->
-            val track = currentCommentsTrack ?: return@CommentsBottomSheet
-            val newComment = Comment(
-                id = (commentsByTrackId[track.id]?.maxOfOrNull { c: Comment -> c.id } ?: 0) + 1,
-                username = "you",
-                profileResId = track.profileResId,
-                timeAgo = "now",
-                text = newText,
-                likeCount = 0
-            )
-            commentsByTrackId[track.id] =
-                (commentsByTrackId[track.id] ?: emptyList<Comment>()) + newComment
-        },
-        onDismiss = { commentsTrack = null }
-    )
 }
 
 // --- FULL-SCREEN REELS-STYLE CARD (used inside VerticalPager on Home) ---
@@ -511,6 +531,11 @@ private fun borderStroke(width: Dp, color: Color) = androidx.compose.foundation.
 
 // Sample data so ReelsHomeScreen has something to render immediately.
 // Swap this out for your real data source (ViewModel / repository / API).
+// NOTE: audioResId is 0 for all three below -- that means NO audio will
+// play for any of these, since ReelsHomeScreen deliberately skips loading
+// a MediaPlayer when audioResId == 0. Replace the 0s with your real
+// R.raw.* audio resource ids (like you used in AudioPostCard.kt) for
+// playback to actually happen when scrolling.
 fun sampleAudioTracks(): List<AudioTrackItem> = listOf(
     AudioTrackItem(
         id = 2,
@@ -521,7 +546,7 @@ fun sampleAudioTracks(): List<AudioTrackItem> = listOf(
         title = "Stop making excuses. Your future self is watching you. Wake up and grind! 🔥💪",
         tags = "#motivation #mindset #discipline #success",
         artworkResId = R.drawable.ironman,
-        audioResId = 0,
+        audioResId = 0, // TODO: replace with R.raw.<your_track>
         playsCount = "12.5K",
         accentColor = Color(0xFF00FFCC)
     ),
@@ -534,7 +559,7 @@ fun sampleAudioTracks(): List<AudioTrackItem> = listOf(
         title = "Unleash your full potential. Consistency beats talent every single day! ⚡👑",
         tags = "#motivation #mindset #grind #hustle",
         artworkResId = R.drawable.pro1_img,
-        audioResId = 0,
+        audioResId = 0, // TODO: replace with R.raw.<your_track>
         playsCount = "4.1K",
         accentColor = Color(0xFF00B2FE)
     ),
@@ -547,7 +572,7 @@ fun sampleAudioTracks(): List<AudioTrackItem> = listOf(
         title = "Epic orchestral movements ⚔️🔥",
         tags = "#epic #soundtrack #orchestral #cinematic",
         artworkResId = R.drawable.music,
-        audioResId = 0,
+        audioResId = 0, // TODO: replace with R.raw.<your_track>
         playsCount = "892",
         accentColor = Color(0xFFFF5722)
     )

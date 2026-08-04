@@ -12,6 +12,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -49,8 +50,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Popup
-import androidx.compose.ui.window.PopupProperties
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.example.navhigh.R
@@ -340,12 +339,6 @@ fun CommentsSheetContent(
         val pulledFarEnough = dragOffsetPx.value > pullToCloseThresholdPx
         val flungFastEnough = flingVelocityY > ForceCloseVelocity
         if (pulledFarEnough || flungFastEnough) {
-            // Snap the local pull offset back to 0 immediately and let the
-            // caller's own exit animation (Material's hide() or the Popup's
-            // slideOut, whichever wraps this) be the ONLY thing that
-            // animates the close -- exactly one motion, not two stacked
-            // slide-downs (which is what caused the stray dark "ghost"
-            // box to appear after closing).
             scope.launch { dragOffsetPx.snapTo(0f) }
             onCloseRequest()
         } else {
@@ -404,14 +397,11 @@ fun CommentsSheetContent(
             .offset { IntOffset(0, dragOffsetPx.value.roundToInt()) }
             .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
             .background(LoginBackground)
+            // Absorb taps here so they never fall through to the outer
+            // scrim's "tap outside to dismiss" handler.
+            .pointerInput(Unit) { detectTapGestures(onTap = {}) }
     ) {
         val handleVelocityTracker = remember { VelocityTracker() }
-        // No visible bar drawn here anymore -- both bars are gone. This Box
-        // still exists purely as an invisible touch/drag zone: dragging
-        // up/down here still resizes the sheet between collapsed/expanded
-        // height, and dragging down past the threshold (or flinging down)
-        // still closes the sheet, exactly as before -- there's just
-        // nothing drawn on screen for it anymore.
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -584,9 +574,13 @@ fun CommentsSheetContent(
 private val RoundedCornerShape24 = RoundedCornerShape(24.dp)
 
 /**
- * Uses a Popup instead of ModalBottomSheet's Dialog -- no window dim, no
- * built-in scrim, no predictive-back preview, nothing that could show a
- * dark layer behind the sheet on close.
+ * Comments sheet rendered as a plain in-window overlay -- NOT a Popup and
+ * NOT a Dialog. Both of those create a second Android window, and every
+ * time that second window opened/closed, touch/keyboard focus had to be
+ * handed back to the Activity's main window -- which is what was
+ * intermittently failing and leaving the reels pager (and the sheet
+ * itself, on the second open) unresponsive. Staying in one window removes
+ * that failure mode entirely: Compose owns all gesture routing itself.
  */
 @Composable
 fun CommentsBottomSheet(
@@ -624,7 +618,6 @@ fun CommentsBottomSheet(
         }
     }
 
-    // Slide in on first composition.
     LaunchedEffect(Unit) {
         visible = true
     }
@@ -633,8 +626,6 @@ fun CommentsBottomSheet(
         visible = false
     }
 
-    // Once the exit animation has had time to finish, tell the caller
-    // it's safe to stop composing this (i.e. flip their `show` state off).
     LaunchedEffect(visible) {
         if (!visible) {
             delay(ExitAnimationDurationMs)
@@ -642,41 +633,30 @@ fun CommentsBottomSheet(
         }
     }
 
-    Popup(
-        alignment = Alignment.BottomCenter,
-        onDismissRequest = dismissFully,
-        properties = PopupProperties(
-            focusable = true,
-            dismissOnBackPress = true,
-            dismissOnClickOutside = true,
-            clippingEnabled = true,
-            usePlatformDefaultWidth = false
-        )
-    ) {
-        BackHandler(enabled = show) {
-            dismissFully()
-        }
+    BackHandler(enabled = show) {
+        dismissFully()
+    }
 
-        // This outer Box is always full-screen and never itself animates.
-        // That keeps the Popup window a fixed size for its whole lifetime,
-        // avoiding a resizing-window artifact.
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Transparent),
-            contentAlignment = Alignment.BottomCenter
+    // Transparent full-screen scrim, same window as everything else.
+    // Tapping it (outside the sheet content) closes the sheet.
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = { dismissFully() })
+            },
+        contentAlignment = Alignment.BottomCenter
+    ) {
+        AnimatedVisibility(
+            visible = visible,
+            enter = slideInVertically(initialOffsetY = { fullHeight -> fullHeight }),
+            exit = slideOutVertically(targetOffsetY = { fullHeight -> fullHeight })
         ) {
-            AnimatedVisibility(
-                visible = visible,
-                enter = slideInVertically(initialOffsetY = { fullHeight -> fullHeight }),
-                exit = slideOutVertically(targetOffsetY = { fullHeight -> fullHeight })
-            ) {
-                CommentsSheetContent(
-                    comments = comments,
-                    onSendComment = { text -> onSendComment(text) },
-                    onCloseRequest = dismissFully
-                )
-            }
+            CommentsSheetContent(
+                comments = comments,
+                onSendComment = { text -> onSendComment(text) },
+                onCloseRequest = dismissFully
+            )
         }
     }
 }
